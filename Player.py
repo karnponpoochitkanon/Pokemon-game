@@ -43,6 +43,9 @@ class Player:
     def draw(self, screen):
         screen.blit(self.image, self.pos)
 
+    def get_rect(self):
+        return pygame.Rect(self.pos.x, self.pos.y, 128, 128)  # sprite ขนาด 128x128
+
 
 class CharacterSelectMenu:
     def __init__(self, screen, player_name):

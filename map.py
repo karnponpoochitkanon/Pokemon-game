@@ -2,11 +2,11 @@ import pytmx
 import pygame
 from setting import *
 
-
 class Map:
     def __init__(self, filename):
         self.tmx_data = pytmx.load_pygame(filename, pixelalpha=True)
-        self.grass_rects = self.get_grass_rects()  # ✅ ใช้อันนี้แทนการกำหนดเองอีกที
+        self.grass_rects = self.get_grass_rects()  # ✅ โหลดพื้นที่หญ้า
+        print("📍 Grass zones loaded:", len(self.grass_rects))  # ✅ แสดงจำนวน
 
     def get_grass_rects(self):
         grass_rects = []
@@ -25,9 +25,9 @@ class Map:
                     if tile:
                         screen.blit(tile, (x * TILE_SIZE, y * TILE_SIZE))
 
-        # วาด object ชื่อ "grass"
+        # ถ้ามี tile แบบวาดเองจาก object layer (ปกติอาจไม่ต้องใช้)
         for obj in self.tmx_data.objects:
-            if obj.name == "grass":
+            if obj.name == "grass" and hasattr(obj, 'gid'):
                 tile = self.tmx_data.get_tile_image_by_gid(obj.gid)
                 if tile:
                     screen.blit(tile, (obj.x, obj.y))

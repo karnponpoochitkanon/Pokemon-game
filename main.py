@@ -1,11 +1,11 @@
 import pygame
 import sys
+import random
 from setting import *
 from map import *
 from Player import *
 from pokemon import *
 from battle import BattleScene
-import random
 
 class StartMenu:
     def __init__(self, screen):
@@ -96,7 +96,6 @@ class StartMenu:
             self.clock.tick(30)
 
 
-
 class MainGame:
     def __init__(self, screen, player_name, player):
         self.screen = screen
@@ -106,32 +105,35 @@ class MainGame:
         self.map = Map("map/map.tmx")
         self.pokemon_data = PlayerMonsters()
 
-        # เริ่มต้นมี Pikachu
         self.player_monsters = [Pokemon("pikachu", "Normal")]
 
-        # สุ่มโปเกม่อนในหญ้า
-        all_monsters = PlayerMonsters().monsters
-        self.available_wild_monsters = [m for m in all_monsters if m.name != "pikachu"]
-        random.shuffle(self.available_wild_monsters)
+        # ลบ pikachu ออกเพื่อเอาไว้สุ่มมอนอื่น
+        all_monsters = [m for m in self.pokemon_data.monsters if m.name != "pikachu"]
 
-        # ป้องกันกรณีมีน้อยกว่า 6 ตัว
-        available_count = min(6, len(self.available_wild_monsters))
-        self.available_wild_monsters = random.sample(self.available_wild_monsters, available_count)
+        print("✅ มอนทั้งหมดที่เอาไปสุ่ม (ไม่รวม pikachu):", all_monsters)
 
-        # ผูกมอนกับพื้นที่หญ้า
+        random.shuffle(all_monsters)
+        self.available_wild_monsters = all_monsters[:6]
+
+        # ดึงแค่หญ้า 6 จุดแรก
+        grass_areas = self.map.grass_rects[:6]
+
+        print("✅ ตำแหน่งหญ้า:", grass_areas)
+        print("✅ มอนที่สุ่มจะวางในหญ้า:", self.available_wild_monsters)
+
+        # map หญ้ากับมอนเข้า dict
         self.grass_monster_lookup = {}
-        for rect in self.map.grass_rects:
-            if self.available_wild_monsters:
-                rect_key = rect.copy()
-                self.grass_monster_lookup[rect_key] = self.available_wild_monsters.pop()
+        for rect, monster in zip(grass_areas, self.available_wild_monsters):
+            rect_key = (rect.x, rect.y, rect.width, rect.height)  # ✅ tuple
+            self.grass_monster_lookup[rect_key] = monster
+
+        print("🧪 ตำแหน่งหญ้าที่มีมอน:", self.grass_monster_lookup)
 
     def start_battle(self, wild_monster):
-        print(f"\n🌿 Encountered a wild {wild_monster.name} ({wild_monster.element_type})!")
-        print(f"⚡ You sent out {self.player_monsters[0].name}!")
-        print("(Simulating battle...) 🎮")
-        pygame.time.delay(2000)
-        print(f"🎉 You caught {wild_monster.name}!")
-        self.player_monsters.append(wild_monster)
+        battle = BattleScene(self.screen, self.player_monsters[0], wild_monster)
+        result = battle.run()
+        if result == "win":
+            self.player_monsters.append(wild_monster)
 
     def run(self):
         running = True
@@ -146,11 +148,11 @@ class MainGame:
                 if event.type == pygame.QUIT:
                     running = False
 
-            # ตรวจจับชนกับหญ้า
-            for rect, monster in list(self.grass_monster_lookup.items()):
+            for rect_data, monster in list(self.grass_monster_lookup.items()):
+                rect = pygame.Rect(rect_data)  # แปลง tuple กลับเป็น Rect
                 if rect.collidepoint(self.player.pos):
                     self.start_battle(monster)
-                    del self.grass_monster_lookup[rect]
+                    del self.grass_monster_lookup[rect_data]
                     break
 
             pygame.display.flip()
@@ -162,15 +164,12 @@ def main():
     screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pygame.display.set_caption("Pokemon Game")
 
-    # หน้ากรอกชื่อ
     start_menu = StartMenu(screen)
     player_name = start_menu.run()
 
-    # ส่ง player_name เข้าไปใน CharacterSelectMenu ด้วย
     character_menu = CharacterSelectMenu(screen, player_name)
     player_image_path = character_menu.run()
 
-    # สร้าง player และเริ่มเกม
     player = Player(player_image_path)
     game = MainGame(screen, player_name, player)
     game.run()
