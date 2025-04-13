@@ -46,8 +46,10 @@ class PokemonSelectionPopup:
         self.card_height = 220
         self.padding = 20
         self.sprite_scale = 100
+        self.cards_per_page = 3
+        self.page = 0
 
-        self.modal_width = min(3, len(pokemon_list)) * (self.card_width + self.padding) + self.padding
+        self.modal_width = self.cards_per_page * (self.card_width + self.padding) + self.padding
         self.modal_height = self.card_height + 100
         self.modal_rect = pygame.Rect(
             (screen.get_width() - self.modal_width) // 2,
@@ -78,31 +80,35 @@ class PokemonSelectionPopup:
         title = self.font.render("CHOOSE YOUR POKEMON TO FIGHT", True, (0, 0, 0))
         self.screen.blit(title, (self.modal_rect.centerx - title.get_width() // 2, self.modal_rect.y + 20))
 
-        # Draw each pokemon
+        # Draw each pokemon on current page
+        start_index = self.page * self.cards_per_page
+        end_index = min(start_index + self.cards_per_page, len(self.pokemon_list))
+        visible_pokemon = self.pokemon_list[start_index:end_index]
+
         start_x = self.modal_rect.x + self.padding
         y = self.modal_rect.y + 60
 
-        for index, pokemon in enumerate(self.pokemon_list):
-            x = start_x + index * (self.card_width + self.padding)
+        for i, pokemon in enumerate(visible_pokemon):
+            index = start_index + i
+            x = start_x + i * (self.card_width + self.padding)
             card_rect = pygame.Rect(x, y, self.card_width, self.card_height)
 
             border_color = (255, 204, 0) if index == self.selected_index else (0, 0, 0)
             pygame.draw.rect(self.screen, (255, 255, 255), card_rect, border_radius=12)
             pygame.draw.rect(self.screen, border_color, card_rect, 3, border_radius=12)
 
-            # Pokemon sprite (scaled down)
             sprite = pygame.image.load(f"image/pokemon/{pokemon.name}.png").convert_alpha()
             sprite = pygame.transform.scale(sprite, (self.sprite_scale, self.sprite_scale))
             self.screen.blit(sprite, (x + (self.card_width - self.sprite_scale) // 2, y + 10))
 
-            # Name
             name_surf = self.font.render(pokemon.name.upper(), True, (0, 0, 0))
             self.screen.blit(name_surf, (x + (self.card_width - name_surf.get_width()) // 2, y + 120))
 
-            # Type label
             self.draw_type_label(pokemon.element_type, x + (self.card_width - 60) // 2, y + 160)
 
     def run(self):
+        total_pages = (len(self.pokemon_list) - 1) // self.cards_per_page + 1
+
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -111,8 +117,10 @@ class PokemonSelectionPopup:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LEFT:
                         self.selected_index = (self.selected_index - 1) % len(self.pokemon_list)
+                        self.page = self.selected_index // self.cards_per_page
                     elif event.key == pygame.K_RIGHT:
                         self.selected_index = (self.selected_index + 1) % len(self.pokemon_list)
+                        self.page = self.selected_index // self.cards_per_page
                     elif event.key == pygame.K_RETURN:
                         return self.pokemon_list[self.selected_index]
 
