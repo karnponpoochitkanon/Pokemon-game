@@ -130,8 +130,16 @@ class MainGame:
         print("🧪 ตำแหน่งหญ้าที่มีมอน:", self.grass_monster_lookup)
 
     def start_battle(self, wild_monster):
+        if len(self.player_monsters) > 1:
+            popup = PokemonSelectionPopup(self.screen, self.player_monsters)
+            chosen = popup.run()
+            # ย้ายตัวที่เลือกมาเป็นตัวแรก
+            self.player_monsters.insert(0, self.player_monsters.pop(self.player_monsters.index(chosen)))
+
+        # สู้เลย
         battle = BattleScene(self.screen, self.player_monsters[0], wild_monster)
         result = battle.run()
+
         if result == "win":
             self.player_monsters.append(wild_monster)
 
