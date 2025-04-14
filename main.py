@@ -163,16 +163,19 @@ class MainGame:
 
             # ✅ ใส่ตรงนี้เลย
             font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 24)
-            shown_healtree_label = False
-            for obj in self.map.tmx_data.objects:
-                if obj.name == "healtree" and not shown_healtree_label:
-                    heal_rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
-                    label = font.render("HEAL TREE", True, (0, 100, 0))  # เขียวเข้ม
-                    label_shadow = font.render("HEAL TREE", True, (255, 255, 255))  # เงา
+            # ✅ ค้นหา healtree object ที่อยู่สูงที่สุด (y น้อยสุด)
+            healtree_objects = [obj for obj in self.map.tmx_data.objects if obj.name == "healtree"]
+            if healtree_objects:
+                topmost_tree = min(healtree_objects, key=lambda o: o.y)
+                heal_rect = pygame.Rect(topmost_tree.x, topmost_tree.y, topmost_tree.width, topmost_tree.height)
 
-                    label_pos = (heal_rect.centerx - label.get_width() // 2, heal_rect.top - 25)
-                    self.screen.blit(label_shadow, (label_pos[0] + 2, label_pos[1] + 2))  # เงา
-                    self.screen.blit(label, label_pos)
+                font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 24)
+                label = font.render("HEAL TREE", True, (0, 100, 0))  # เขียวเข้ม
+                label_shadow = font.render("HEAL TREE", True, (255, 255, 255))  # เงา
+
+                label_pos = (heal_rect.centerx - label.get_width() // 2, heal_rect.top - 12)
+                self.screen.blit(label_shadow, (label_pos[0] + 2, label_pos[1] + 2))  # เงา
+                self.screen.blit(label, label_pos)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
