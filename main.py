@@ -102,6 +102,8 @@ class MainGame:
         self.pokemon_data = PlayerMonsters()
         self.player_monsters = [Pokemon("pikachu", "Normal")]
         self.debug_show_grass = False
+        self.show_heal_popup = False
+        self.heal_popup_timer = 0
 
         all_monsters = [m for m in self.pokemon_data.monsters if m.name != "pikachu"]
         random.shuffle(all_monsters)
@@ -123,11 +125,35 @@ class MainGame:
         result = battle.run()
 
         if result == "win":
+            wild_monster.hp = wild_monster.max_hp
             self.player_monsters.append(wild_monster)
+
+            for rect_data, mon in list(self.grass_monster_lookup.items()):
+                if mon == wild_monster:
+                    del self.grass_monster_lookup[rect_data]
+                    break
+        elif result == "lose":
+            pass  # Do not remove wild_monster if lost
+
+    def draw_heal_popup(self):
+        font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 36)
+        message_text = "All Pokemon have been healed!"
+        message = font.render(message_text, True, (0, 60, 0))  # Green text
+
+        padding_x, padding_y = 40, 30
+        bg_width = message.get_width() + padding_x
+        bg_height = message.get_height() + padding_y
+        bg = pygame.Surface((bg_width, bg_height))
+
+        bg.fill((204, 255, 204))  # Light green background
+        pygame.draw.rect(bg, (0, 100, 0), bg.get_rect(), 4)  # Dark green border
+
+        bg_rect = bg.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+        self.screen.blit(bg, bg_rect)
+        self.screen.blit(message, message.get_rect(center=bg_rect.center))
 
     def run(self):
         running = True
-        self.debug_show_grass = False
         while running:
             self.screen.fill((0, 0, 0))
             keys = pygame.key.get_pressed()
@@ -149,52 +175,35 @@ class MainGame:
                     center = (x + w // 2, y + h // 2)
                     shadow = font.render("?", True, (0, 0, 0))
                     text = font.render("?", True, (255, 50, 50))
-                    shadow_rect = shadow.get_rect(center=center)
-                    text_rect = text.get_rect(center=center)
-                    shadow_rect.move_ip(2, 2)
-                    self.screen.blit(shadow, shadow_rect)
-                    self.screen.blit(text, text_rect)
+                    self.screen.blit(shadow, shadow.get_rect(center=(center[0] + 2, center[1] + 2)))
+                    self.screen.blit(text, text.get_rect(center=center))
 
             self.player.draw(self.screen)
-            pygame.draw.rect(self.screen, (255, 0, 0), self.player.rect, 2)
 
             for rect_data, monster in list(self.grass_monster_lookup.items()):
                 rect = pygame.Rect(rect_data)
                 if rect.colliderect(self.player.rect):
                     self.start_battle(monster)
-                    del self.grass_monster_lookup[rect_data]
                     break
 
-            healed = False
+            heal_triggered = False
             for obj in self.map.tmx_data.objects:
                 if obj.name == "healtree":
                     heal_rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
                     if heal_rect.colliderect(self.player.rect):
-                        for p in self.player_monsters:
-                            if p.hp < p.max_hp:
-                                p.hp = p.max_hp
-                                healed = True
+                        heal_triggered = True
+                        break
 
-            if healed:
-                font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 36)
-                message_text = "All Pokemon have been healed!"
-                message = font.render(message_text, True, (0, 60, 0))  # ✅ สีเขียวเข้ม
+            if heal_triggered:
+                for p in self.player_monsters:
+                    p.hp = p.max_hp
+                self.show_heal_popup = True
+                self.heal_popup_timer = pygame.time.get_ticks()
 
-                padding_x, padding_y = 40, 30
-                bg_width = message.get_width() + padding_x
-                bg_height = message.get_height() + padding_y
-                bg = pygame.Surface((bg_width, bg_height))
-
-                # ✅ เขียวอ่อนสดใส + ขอบเข้ม
-                bg.fill((204, 255, 204))  # พื้นหลังเขียวอ่อน
-                pygame.draw.rect(bg, (0, 100, 0), bg.get_rect(), 4)  # ขอบเขียวเข้ม
-
-                bg_rect = bg.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
-                self.screen.blit(bg, bg_rect)
-                self.screen.blit(message, message.get_rect(center=bg_rect.center))
-
-                pygame.display.flip()
-                pygame.time.delay(1500)
+            if self.show_heal_popup and pygame.time.get_ticks() - self.heal_popup_timer < 1500:
+                self.draw_heal_popup()
+            else:
+                self.show_heal_popup = False
 
             pygame.display.flip()
             self.clock.tick(60)
