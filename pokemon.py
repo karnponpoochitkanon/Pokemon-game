@@ -7,6 +7,9 @@ class Pokemon:
     def __init__(self, name, element_type="Normal"):
         self.name = name
         self.element_type = element_type
+        self.max_hp = 200
+        self.hp = 200
+        self.base_attack = 50
 
     def __repr__(self):
         return f"{self.name} ({self.element_type})"

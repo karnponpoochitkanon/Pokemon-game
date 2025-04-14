@@ -5,13 +5,13 @@ from setting import *
 class Map:
     def __init__(self, filename):
         self.tmx_data = pytmx.load_pygame(filename, pixelalpha=True)
-        self.grass_rects = self.get_grass_rects()  # ✅ โหลดพื้นที่หญ้า
-        print("📍 Grass zones loaded:", len(self.grass_rects))  # ✅ แสดงจำนวน
+        self.grass_rects = self.get_grass_rects()
+        print("📍 Grass zones loaded:", len(self.grass_rects))
 
     def get_grass_rects(self):
         grass_rects = []
         for obj in self.tmx_data.objects:
-            if obj.name == "grass":  # ✅ ใช้เฉพาะ grass เท่านั้น
+            if obj.name == "grass":
                 rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
                 grass_rects.append(rect)
         return grass_rects
@@ -25,16 +25,9 @@ class Map:
                     if tile:
                         screen.blit(tile, (x * TILE_SIZE, y * TILE_SIZE))
 
-        # วาด grass และ grassnomon
+        # วาด object ที่มี gid เช่น hostial, door, healtree
         for obj in self.tmx_data.objects:
-            if obj.name in ["grass", "grassnomon"] and hasattr(obj, 'gid'):
-                tile = self.tmx_data.get_tile_image_by_gid(obj.gid)
-                if tile:
-                    screen.blit(tile, (obj.x, obj.y))
-
-        # วาด tree
-        for obj in self.tmx_data.objects:
-            if obj.name == "tree" and hasattr(obj, 'gid'):
+            if hasattr(obj, 'gid'):
                 tile = self.tmx_data.get_tile_image_by_gid(obj.gid)
                 if tile:
                     screen.blit(tile, (obj.x, obj.y))
@@ -42,12 +35,11 @@ class Map:
     def get_blocking_rects(self):
         block_rects = []
         for obj in self.tmx_data.objects:
-            if obj.name in ["tree", "hostial"]:  # ป้องกันเดินทะลุ hostial ด้วย
+            if obj.name in ["tree", "healtree"]:  # ❗ ป้องกันเดินผ่านทั้งต้นไม้ธรรมดาและต้นไม้รักษา
                 rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
                 block_rects.append(rect)
         return block_rects
 
     @property
     def block_rects(self):
-        return [pygame.Rect(obj.x, obj.y, obj.width, obj.height)
-                for obj in self.tmx_data.objects if obj.name == "tree"]
+        return self.get_blocking_rects()

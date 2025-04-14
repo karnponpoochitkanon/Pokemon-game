@@ -103,15 +103,11 @@ class MainGame:
         self.player_monsters = [Pokemon("pikachu", "Normal")]
         self.debug_show_grass = False
 
-        # ลบ pikachu ออกเพื่อสุ่มโปเกม่อนป่า
         all_monsters = [m for m in self.pokemon_data.monsters if m.name != "pikachu"]
         random.shuffle(all_monsters)
-
-        # โหลดตำแหน่งพุ่มหญ้าที่มีโปเกม่อนจริง
         grass_areas = self.map.grass_rects[:10]
         self.available_wild_monsters = all_monsters[:10]
 
-        # map หญ้ากับมอนเข้า dict
         self.grass_monster_lookup = {}
         for rect, monster in zip(grass_areas, self.available_wild_monsters):
             rect_key = (rect.x, rect.y, rect.width, rect.height)
@@ -131,16 +127,14 @@ class MainGame:
 
     def run(self):
         running = True
-        self.debug_show_grass = False  # แสดงตำแหน่งโปเกม่อนในหญ้า
+        self.debug_show_grass = False
         while running:
             self.screen.fill((0, 0, 0))
             keys = pygame.key.get_pressed()
-            block_rects = self.map.get_blocking_rects()  # ✅ โหลดทุก frame
-            # แล้วตอนอัปเดต player
-            self.player.update(keys, block_rects)  # ส่ง block_rects
+            block_rects = self.map.get_blocking_rects()
+            self.player.update(keys, block_rects)
             self.map.draw(self.screen)
 
-            # รับ input
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -148,45 +142,59 @@ class MainGame:
                     if event.key == pygame.K_a:
                         self.debug_show_grass = not self.debug_show_grass
 
-            # แสดง debug วงกลมแบบไฮไลต์ละมุน
             if self.debug_show_grass:
                 font = pygame.font.Font(None, 40)
                 for rect_data in self.grass_monster_lookup:
                     x, y, w, h = rect_data
                     center = (x + w // 2, y + h // 2)
-
-                    # สร้างตัวอักษร
                     shadow = font.render("?", True, (0, 0, 0))
                     text = font.render("?", True, (255, 50, 50))
-
-                    # วัดขนาดเพื่อจัดให้อยู่ตรงกลาง
                     shadow_rect = shadow.get_rect(center=center)
                     text_rect = text.get_rect(center=center)
-
-                    # วาดเงาก่อนแล้วค่อยวาดตัวจริง
-                    shadow_rect.move_ip(2, 2)  # ขยับเงาลงขวานิดนึง
+                    shadow_rect.move_ip(2, 2)
                     self.screen.blit(shadow, shadow_rect)
                     self.screen.blit(text, text_rect)
 
-            # วาดผู้เล่น
             self.player.draw(self.screen)
+            pygame.draw.rect(self.screen, (255, 0, 0), self.player.rect, 2)
 
-            # ตรวจว่าผู้เล่นเดินชนพุ่มหญ้าที่มีโปเกม่อนหรือไม่
             for rect_data, monster in list(self.grass_monster_lookup.items()):
                 rect = pygame.Rect(rect_data)
-                if rect.colliderect(self.player.rect):  # ใช้ชนเต็มตัวละคร
+                if rect.colliderect(self.player.rect):
                     self.start_battle(monster)
                     del self.grass_monster_lookup[rect_data]
                     break
 
-            # ตรวจว่าผู้เล่นชน door เพื่อฟื้นเลือด
+            healed = False
             for obj in self.map.tmx_data.objects:
-                if obj.name == "door":
-                    door_rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
-                    if door_rect.colliderect(self.player.rect):
+                if obj.name == "healtree":
+                    heal_rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
+                    if heal_rect.colliderect(self.player.rect):
                         for p in self.player_monsters:
-                            p.hp = p.max_hp  # ✅ ฟื้นเต็ม
-                        print("💖 ฟื้นพลังโปเกม่อนทุกตัวแล้ว!")
+                            if p.hp < p.max_hp:
+                                p.hp = p.max_hp
+                                healed = True
+
+            if healed:
+                font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 36)
+                message_text = "All Pokemon have been healed!"
+                message = font.render(message_text, True, (0, 60, 0))  # ✅ สีเขียวเข้ม
+
+                padding_x, padding_y = 40, 30
+                bg_width = message.get_width() + padding_x
+                bg_height = message.get_height() + padding_y
+                bg = pygame.Surface((bg_width, bg_height))
+
+                # ✅ เขียวอ่อนสดใส + ขอบเข้ม
+                bg.fill((204, 255, 204))  # พื้นหลังเขียวอ่อน
+                pygame.draw.rect(bg, (0, 100, 0), bg.get_rect(), 4)  # ขอบเขียวเข้ม
+
+                bg_rect = bg.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+                self.screen.blit(bg, bg_rect)
+                self.screen.blit(message, message.get_rect(center=bg_rect.center))
+
+                pygame.display.flip()
+                pygame.time.delay(1500)
 
             pygame.display.flip()
             self.clock.tick(60)

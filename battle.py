@@ -12,9 +12,6 @@ class BattleScene:
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 28)
 
-        # Health
-        self.player_health = 200
-        self.wild_health = 100
         self.battle_over = False
 
         # Positions
@@ -46,8 +43,8 @@ class BattleScene:
     def draw_pokemon(self):
         self.screen.blit(self.player_img, self.player_pos)
         self.screen.blit(self.wild_img, self.wild_pos)
-        self.draw_health_bar(self.player_pos[0], self.player_pos[1] - 50, self.player_health, 200, f"YOU: {self.player_pokemon.name.upper()}")
-        self.draw_health_bar(self.wild_pos[0], self.wild_pos[1] - 50, self.wild_health, 100, f"WILD: {self.wild_pokemon.name.upper()}")
+        self.draw_health_bar(self.player_pos[0], self.player_pos[1] - 50, self.player_pokemon.hp, self.player_pokemon.max_hp, f"YOU: {self.player_pokemon.name.upper()}")
+        self.draw_health_bar(self.wild_pos[0], self.wild_pos[1] - 50, self.wild_pokemon.hp, self.wild_pokemon.max_hp, f"WILD: {self.wild_pokemon.name.upper()}")
 
     def get_attack_animation(self, element_type):
         path_map = {
@@ -71,6 +68,16 @@ class BattleScene:
             pygame.display.flip()
             pygame.time.delay(100)
 
+    def get_attack_bonus(self, attacker, defender):
+        advantage = {
+            "Water": "Fire",
+            "Fire": "Grass",
+            "Grass": "Water"
+        }
+        if advantage.get(attacker.element_type) == defender.element_type:
+            return 20
+        return 0
+
     def run(self):
         while True:
             self.screen.blit(self.bg, (0, 0))
@@ -82,16 +89,18 @@ class BattleScene:
                     sys.exit()
                 elif event.type == pygame.KEYDOWN and not self.battle_over:
                     if event.key == pygame.K_SPACE:
+                        bonus = self.get_attack_bonus(self.player_pokemon, self.wild_pokemon)
                         self.play_attack_animation(self.player_pokemon.element_type, self.wild_pos)
-                        self.wild_health -= 25
+                        self.wild_pokemon.hp -= self.player_pokemon.base_attack + bonus
 
-                        if self.wild_health <= 0:
+                        if self.wild_pokemon.hp <= 0:
                             return "win"
 
+                        bonus = self.get_attack_bonus(self.wild_pokemon, self.player_pokemon)
                         self.play_attack_animation(self.wild_pokemon.element_type, self.player_pos)
-                        self.player_health -= 25
+                        self.player_pokemon.hp -= self.wild_pokemon.base_attack + bonus
 
-                        if self.player_health <= 0:
+                        if self.player_pokemon.hp <= 0:
                             return "lose"
 
             pygame.display.flip()

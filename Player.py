@@ -13,7 +13,7 @@ class Player:
         self.animation_speed = 0.15
         self.status = 'down'
         self.image = self.frames[self.status][0]
-        self.pos = Vector(80, 580)  # ✅ ตำแหน่งเริ่มต้นมุมล่างซ้าย
+        self.pos = Vector(20, 220)  # ✅ เริ่มจากมุมล่างซ้าย
 
     def update(self, keys, block_rects):
         self.direction = Vector(0, 0)
@@ -32,31 +32,26 @@ class Player:
             self.status = 'right'
 
         if self.direction.length() != 0:
-            old_pos = self.pos.copy()
-            self.pos += self.direction
+            next_pos = self.pos + self.direction
+            next_rect = pygame.Rect(next_pos.x + 48, next_pos.y + 48, 32, 32)
 
-            # ตรวจว่าชนต้นไม้หรือไม่
-            for rect in block_rects:
-                if self.rect.colliderect(rect):  # ✅ ใช้ property rect ที่แม่นขึ้น
-                    self.pos = old_pos  # ย้อนกลับ
-
-            self.frame_index += self.animation_speed
-            if self.frame_index >= len(self.frames[self.status]):
-                self.frame_index = 0
-            self.image = self.frames[self.status][int(self.frame_index)]
+            if not any(next_rect.colliderect(block) for block in block_rects):
+                self.pos = next_pos
+                self.frame_index += self.animation_speed
+                if self.frame_index >= len(self.frames[self.status]):
+                    self.frame_index = 0
+                self.image = self.frames[self.status][int(self.frame_index)]
+            else:
+                self.image = self.frames[self.status][0]
         else:
             self.image = self.frames[self.status][0]
 
     def draw(self, screen):
         screen.blit(self.image, self.pos)
 
-    def get_rect(self):
-        return self.rect  # ✅ ให้ใช้ rect เดิมที่สร้างไว้
-
     @property
     def rect(self):
-        return pygame.Rect(self.pos.x + 48, self.pos.y + 48, 32, 32)
-
+        return pygame.Rect(self.pos.x + 40, self.pos.y + 40, 48, 48)  # ใหญ่กว่าเดิมนิด
 
 class CharacterSelectMenu:
     def __init__(self, screen, player_name):
