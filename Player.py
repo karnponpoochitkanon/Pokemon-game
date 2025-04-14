@@ -81,6 +81,7 @@ class CharacterSelectMenu:
         title_rect = title.get_rect(center=(WINDOW_WIDTH // 2, 120))
         self.screen.blit(title, title_rect)
 
+
         # รายการตัวละคร
         for i, (name, _) in enumerate(self.characters):
             y = 200 + i * 60
@@ -111,6 +112,7 @@ class CharacterSelectMenu:
         preview = pygame.transform.scale(frame, (230, 230))  # หรือมากกว่านี้ก็ได้
         preview_rect = preview.get_rect(center=(WINDOW_WIDTH // 2, 500))  # ตำแหน่งให้ต่ำลงมาหน่อย
         self.screen.blit(preview, preview_rect)
+
 
         pygame.display.flip()
 
