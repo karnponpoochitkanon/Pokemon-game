@@ -22,6 +22,10 @@ class PlayerMonsters:
             Pokemon("pikachu", "Normal"),
             Pokemon("furin", "Normal"),
             Pokemon("gus", "Normal"),
+            Pokemon("squirrel", "Grass"),  # ✅ เพิ่มตรงนี้
+            Pokemon("cute", "Normal"),
+            Pokemon("beagle", "Water"),
+            Pokemon("firefox", "Fire")
         ]
 
     def get_available_monsters(self):
@@ -31,7 +35,11 @@ class PlayerMonsters:
             Pokemon("fushigidane", "Grass"),
             Pokemon("eevee", "Normal"),
             Pokemon("furin", "Normal"),
-            Pokemon("gus", "Normal")
+            Pokemon("gus", "Normal"),
+            Pokemon("squirrel", "Grass"),   # ✅ ใหม่
+            Pokemon("cute", "Normal"),      # ✅ ใหม่
+            Pokemon("beagle", "Water"),
+            Pokemon("firefox", "Fire")
         ]
 
 class PokemonSelectionPopup:

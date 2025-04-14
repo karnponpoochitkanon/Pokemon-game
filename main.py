@@ -15,7 +15,6 @@ class StartMenu:
         self.font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 36)
         self.title_font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 100)
         self.map = Map("map/map.tmx")
-
         self.background = pygame.image.load("image/Wallpaper.jpg")
         self.background = pygame.transform.scale(self.background, (WINDOW_WIDTH, WINDOW_HEIGHT))
 
@@ -26,7 +25,6 @@ class StartMenu:
         self.color = self.color_inactive
         self.active = False
         self.player_name = ""
-
         self.button_rect = pygame.Rect(540, 580, 200, 50)
         self.button_color = pygame.Color((244, 143, 177))
 
@@ -81,11 +79,9 @@ class StartMenu:
                         self.active = False
                         self.color = self.color_inactive
                     if self.button_rect.collidepoint(event.pos) and self.player_name.strip():
-                        print(f"Starting game for: {self.player_name}")
                         return self.player_name
                 elif event.type == pygame.KEYDOWN and self.active:
                     if event.key == pygame.K_RETURN:
-                        print(f"Starting game for: {self.player_name}")
                         return self.player_name
                     elif event.key == pygame.K_BACKSPACE:
                         self.player_name = self.player_name[:-1]
@@ -104,39 +100,29 @@ class MainGame:
         self.clock = pygame.time.Clock()
         self.map = Map("map/map.tmx")
         self.pokemon_data = PlayerMonsters()
-
         self.player_monsters = [Pokemon("pikachu", "Normal")]
+        self.debug_show_grass = False
 
-        # ลบ pikachu ออกเพื่อเอาไว้สุ่มมอนอื่น
+        # ลบ pikachu ออกเพื่อสุ่มโปเกม่อนป่า
         all_monsters = [m for m in self.pokemon_data.monsters if m.name != "pikachu"]
-
-        print("✅ มอนทั้งหมดที่เอาไปสุ่ม (ไม่รวม pikachu):", all_monsters)
-
         random.shuffle(all_monsters)
-        self.available_wild_monsters = all_monsters[:6]
 
-        # ดึงแค่หญ้า 6 จุดแรก
-        grass_areas = self.map.grass_rects[:6]
-
-        print("✅ ตำแหน่งหญ้า:", grass_areas)
-        print("✅ มอนที่สุ่มจะวางในหญ้า:", self.available_wild_monsters)
+        # โหลดตำแหน่งพุ่มหญ้าที่มีโปเกม่อนจริง
+        grass_areas = self.map.grass_rects[:10]
+        self.available_wild_monsters = all_monsters[:10]
 
         # map หญ้ากับมอนเข้า dict
         self.grass_monster_lookup = {}
         for rect, monster in zip(grass_areas, self.available_wild_monsters):
-            rect_key = (rect.x, rect.y, rect.width, rect.height)  # ✅ tuple
+            rect_key = (rect.x, rect.y, rect.width, rect.height)
             self.grass_monster_lookup[rect_key] = monster
-
-        print("🧪 ตำแหน่งหญ้าที่มีมอน:", self.grass_monster_lookup)
 
     def start_battle(self, wild_monster):
         if len(self.player_monsters) > 1:
             popup = PokemonSelectionPopup(self.screen, self.player_monsters)
             chosen = popup.run()
-            # ย้ายตัวที่เลือกมาเป็นตัวแรก
             self.player_monsters.insert(0, self.player_monsters.pop(self.player_monsters.index(chosen)))
 
-        # สู้เลย
         battle = BattleScene(self.screen, self.player_monsters[0], wild_monster)
         result = battle.run()
 
@@ -145,23 +131,62 @@ class MainGame:
 
     def run(self):
         running = True
+        self.debug_show_grass = False  # แสดงตำแหน่งโปเกม่อนในหญ้า
         while running:
             self.screen.fill((0, 0, 0))
             keys = pygame.key.get_pressed()
-            self.player.update(keys)
+            block_rects = self.map.get_blocking_rects()  # ✅ โหลดทุก frame
+            # แล้วตอนอัปเดต player
+            self.player.update(keys, block_rects)  # ส่ง block_rects
             self.map.draw(self.screen)
-            self.player.draw(self.screen)
 
+            # รับ input
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_a:
+                        self.debug_show_grass = not self.debug_show_grass
 
+            # แสดง debug วงกลมแบบไฮไลต์ละมุน
+            if self.debug_show_grass:
+                font = pygame.font.Font(None, 40)
+                for rect_data in self.grass_monster_lookup:
+                    x, y, w, h = rect_data
+                    center = (x + w // 2, y + h // 2)
+
+                    # สร้างตัวอักษร
+                    shadow = font.render("?", True, (0, 0, 0))
+                    text = font.render("?", True, (255, 50, 50))
+
+                    # วัดขนาดเพื่อจัดให้อยู่ตรงกลาง
+                    shadow_rect = shadow.get_rect(center=center)
+                    text_rect = text.get_rect(center=center)
+
+                    # วาดเงาก่อนแล้วค่อยวาดตัวจริง
+                    shadow_rect.move_ip(2, 2)  # ขยับเงาลงขวานิดนึง
+                    self.screen.blit(shadow, shadow_rect)
+                    self.screen.blit(text, text_rect)
+
+            # วาดผู้เล่น
+            self.player.draw(self.screen)
+
+            # ตรวจว่าผู้เล่นเดินชนพุ่มหญ้าที่มีโปเกม่อนหรือไม่
             for rect_data, monster in list(self.grass_monster_lookup.items()):
-                rect = pygame.Rect(rect_data)  # แปลง tuple กลับเป็น Rect
-                if rect.collidepoint(self.player.pos):
+                rect = pygame.Rect(rect_data)
+                if rect.colliderect(self.player.rect):  # ใช้ชนเต็มตัวละคร
                     self.start_battle(monster)
                     del self.grass_monster_lookup[rect_data]
                     break
+
+            # ตรวจว่าผู้เล่นชน door เพื่อฟื้นเลือด
+            for obj in self.map.tmx_data.objects:
+                if obj.name == "door":
+                    door_rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
+                    if door_rect.colliderect(self.player.rect):
+                        for p in self.player_monsters:
+                            p.hp = p.max_hp  # ✅ ฟื้นเต็ม
+                        print("💖 ฟื้นพลังโปเกม่อนทุกตัวแล้ว!")
 
             pygame.display.flip()
             self.clock.tick(60)

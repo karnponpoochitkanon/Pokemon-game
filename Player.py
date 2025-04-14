@@ -7,15 +7,15 @@ from pokemon import Pokemon
 
 class Player:
     def __init__(self, image_path):
-        self.frames = character_importer(3, 4, image_path)  # ใช้ sprite ขนาด 128x128
+        self.frames = character_importer(3, 4, image_path)
         self.direction = Vector(0, 0)
         self.frame_index = 0
         self.animation_speed = 0.15
         self.status = 'down'
         self.image = self.frames[self.status][0]
-        self.pos = Vector(100, 100)
+        self.pos = Vector(80, 580)  # ✅ ตำแหน่งเริ่มต้นมุมล่างซ้าย
 
-    def update(self, keys):
+    def update(self, keys, block_rects):
         self.direction = Vector(0, 0)
 
         if keys[pygame.K_UP]:
@@ -32,7 +32,14 @@ class Player:
             self.status = 'right'
 
         if self.direction.length() != 0:
+            old_pos = self.pos.copy()
             self.pos += self.direction
+
+            # ตรวจว่าชนต้นไม้หรือไม่
+            for rect in block_rects:
+                if self.rect.colliderect(rect):  # ✅ ใช้ property rect ที่แม่นขึ้น
+                    self.pos = old_pos  # ย้อนกลับ
+
             self.frame_index += self.animation_speed
             if self.frame_index >= len(self.frames[self.status]):
                 self.frame_index = 0
@@ -44,7 +51,11 @@ class Player:
         screen.blit(self.image, self.pos)
 
     def get_rect(self):
-        return pygame.Rect(self.pos.x, self.pos.y, 128, 128)  # sprite ขนาด 128x128
+        return self.rect  # ✅ ให้ใช้ rect เดิมที่สร้างไว้
+
+    @property
+    def rect(self):
+        return pygame.Rect(self.pos.x + 48, self.pos.y + 48, 32, 32)
 
 
 class CharacterSelectMenu:

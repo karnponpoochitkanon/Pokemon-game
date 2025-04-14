@@ -11,7 +11,7 @@ class Map:
     def get_grass_rects(self):
         grass_rects = []
         for obj in self.tmx_data.objects:
-            if obj.name == "grass":
+            if obj.name == "grass":  # ✅ ใช้เฉพาะ grass เท่านั้น
                 rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
                 grass_rects.append(rect)
         return grass_rects
@@ -25,9 +25,29 @@ class Map:
                     if tile:
                         screen.blit(tile, (x * TILE_SIZE, y * TILE_SIZE))
 
-        # ถ้ามี tile แบบวาดเองจาก object layer (ปกติอาจไม่ต้องใช้)
+        # วาด grass และ grassnomon
         for obj in self.tmx_data.objects:
-            if obj.name == "grass" and hasattr(obj, 'gid'):
+            if obj.name in ["grass", "grassnomon"] and hasattr(obj, 'gid'):
                 tile = self.tmx_data.get_tile_image_by_gid(obj.gid)
                 if tile:
                     screen.blit(tile, (obj.x, obj.y))
+
+        # วาด tree
+        for obj in self.tmx_data.objects:
+            if obj.name == "tree" and hasattr(obj, 'gid'):
+                tile = self.tmx_data.get_tile_image_by_gid(obj.gid)
+                if tile:
+                    screen.blit(tile, (obj.x, obj.y))
+
+    def get_blocking_rects(self):
+        block_rects = []
+        for obj in self.tmx_data.objects:
+            if obj.name in ["tree", "hostial"]:  # ป้องกันเดินทะลุ hostial ด้วย
+                rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
+                block_rects.append(rect)
+        return block_rects
+
+    @property
+    def block_rects(self):
+        return [pygame.Rect(obj.x, obj.y, obj.width, obj.height)
+                for obj in self.tmx_data.objects if obj.name == "tree"]
