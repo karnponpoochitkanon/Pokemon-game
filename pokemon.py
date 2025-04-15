@@ -354,3 +354,4 @@ class CatchPopup:
             self.screen.blit(box, box_rect)
 
             pygame.display.update()
+

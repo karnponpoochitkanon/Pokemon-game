@@ -25,7 +25,7 @@ class Map:
                     if tile:
                         screen.blit(tile, (x * TILE_SIZE, y * TILE_SIZE))
 
-        # วาด object ที่มี gid เช่น hostial, door, healtree
+        # วาด object ที่มี gid เช่น hospital, door, healtree, yim
         for obj in self.tmx_data.objects:
             if hasattr(obj, 'gid'):
                 tile = self.tmx_data.get_tile_image_by_gid(obj.gid)
@@ -35,7 +35,7 @@ class Map:
     def get_blocking_rects(self):
         block_rects = []
         for obj in self.tmx_data.objects:
-            if obj.name in ["tree", "healtree"]:  # ❗ ป้องกันเดินผ่านทั้งต้นไม้ธรรมดาและต้นไม้รักษา
+            if obj.name in ["tree", "healtree", "yim"]:  # ✅ เพิ่ม yim ด้วย
                 rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
                 block_rects.append(rect)
         return block_rects
