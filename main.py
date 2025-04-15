@@ -164,39 +164,34 @@ class MainGame:
 
     def run(self):
         running = True
+        show_team_popup = False
+        team_popup = TeamStatusPopup(self.screen, self.player_monsters, draw_background_fn=self.map.draw)
+
         while running:
             self.screen.fill((0, 0, 0))
             keys = pygame.key.get_pressed()
             block_rects = self.map.get_blocking_rects()
-            self.player.update(keys, block_rects)
-            self.map.draw(self.screen)
 
-            # ✅ ใส่ตรงนี้เลย
+            if not show_team_popup:
+                self.player.update(keys, block_rects)
+
+            # วาดแผนที่และ player
+            self.map.draw(self.screen)
+            self.player.draw(self.screen)
+
+            # ✅ แสดง HEAL TREE
             font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 24)
-            # ✅ ค้นหา healtree object ที่อยู่สูงที่สุด (y น้อยสุด)
             healtree_objects = [obj for obj in self.map.tmx_data.objects if obj.name == "healtree"]
             if healtree_objects:
                 topmost_tree = min(healtree_objects, key=lambda o: o.y)
                 heal_rect = pygame.Rect(topmost_tree.x, topmost_tree.y, topmost_tree.width, topmost_tree.height)
-
-                font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 24)
-                label = font.render("HEAL TREE", True, (0, 100, 0))  # เขียวเข้ม
-                label_shadow = font.render("HEAL TREE", True, (255, 255, 255))  # เงา
-
+                label = font.render("HEAL TREE", True, (0, 100, 0))
+                shadow = font.render("HEAL TREE", True, (255, 255, 255))
                 label_pos = (heal_rect.centerx - label.get_width() // 2, heal_rect.top - 12)
-                self.screen.blit(label_shadow, (label_pos[0] + 2, label_pos[1] + 2))  # เงา
+                self.screen.blit(shadow, (label_pos[0] + 2, label_pos[1] + 2))
                 self.screen.blit(label, label_pos)
 
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_a:
-                        self.debug_show_grass = not self.debug_show_grass
-                    elif event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
-                        popup = PokemonTeamPopup(self.screen, self.player_monsters)
-                        popup.run()
-
+            # ✅ แสดงพุ่มหญ้า debug
             if self.debug_show_grass:
                 font = pygame.font.Font(None, 40)
                 for rect_data in self.grass_monster_lookup:
@@ -207,36 +202,62 @@ class MainGame:
                     self.screen.blit(shadow, shadow.get_rect(center=(center[0] + 2, center[1] + 2)))
                     self.screen.blit(text, text.get_rect(center=center))
 
-            self.player.draw(self.screen)
+            # ✅ แสดง popup ทีม
+            if show_team_popup:
+                team_popup.draw()
 
-            for rect_data, monster in list(self.grass_monster_lookup.items()):
-                rect = pygame.Rect(rect_data)
-                if rect.colliderect(self.player.rect):
-                    self.start_battle(monster)
-                    break
-
-            heal_triggered = False
-            for obj in self.map.tmx_data.objects:
-                if obj.name == "healtree":
-                    heal_rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
-                    if heal_rect.colliderect(self.player.rect):
-                        heal_triggered = True
-                        break
-
-            if heal_triggered:
-                for p in self.player_monsters:
-                    p.hp = p.max_hp
-                self.show_heal_popup = True
-                self.heal_popup_timer = pygame.time.get_ticks()
-
+            # ✅ แสดง Heal Popup
             if self.show_heal_popup and pygame.time.get_ticks() - self.heal_popup_timer < 1500:
                 self.draw_heal_popup()
             else:
                 self.show_heal_popup = False
 
-            pygame.display.flip()
-            self.clock.tick(60)
+            pygame.display.update()
 
+            # ✅ จัดการอีเวนต์
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+
+                elif event.type == pygame.KEYDOWN:
+                    if show_team_popup:
+                        if event.key == pygame.K_DOWN:
+                            team_popup.selected_index = (team_popup.selected_index + 1) % len(team_popup.pokemon_list)
+                            team_popup.page = team_popup.selected_index // team_popup.page_size
+                        elif event.key == pygame.K_UP:
+                            team_popup.selected_index = (team_popup.selected_index - 1) % len(team_popup.pokemon_list)
+                            team_popup.page = team_popup.selected_index // team_popup.page_size
+                        elif event.key in [pygame.K_LSHIFT, pygame.K_RSHIFT, pygame.K_ESCAPE]:
+                            show_team_popup = False
+                    else:
+                        if event.key == pygame.K_a:
+                            self.debug_show_grass = not self.debug_show_grass
+                        elif event.key in [pygame.K_LSHIFT, pygame.K_RSHIFT]:
+                            show_team_popup = True
+
+            # ✅ ตรวจจับการชนหญ้าและต้นไม้
+            if not show_team_popup:
+                for rect_data, monster in list(self.grass_monster_lookup.items()):
+                    rect = pygame.Rect(rect_data)
+                    if rect.colliderect(self.player.rect):
+                        self.start_battle(monster)
+                        break
+
+                heal_triggered = False
+                for obj in self.map.tmx_data.objects:
+                    if obj.name == "healtree":
+                        heal_rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
+                        if heal_rect.colliderect(self.player.rect):
+                            heal_triggered = True
+                            break
+
+                if heal_triggered:
+                    for p in self.player_monsters:
+                        p.hp = p.max_hp
+                    self.show_heal_popup = True
+                    self.heal_popup_timer = pygame.time.get_ticks()
+
+            self.clock.tick(60)
 
 def main():
     pygame.init()

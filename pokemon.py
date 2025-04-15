@@ -184,92 +184,105 @@ class PokemonSelectionPopup:
             self.clock.tick(60)
 
 
-class PokemonTeamPopup:
-    def __init__(self, screen, team, font_path="Fonts/Arabica/ttf/Arabica.ttf"):
+class TeamStatusPopup:
+    def __init__(self, screen, pokemon_list, draw_background_fn=None):
         self.screen = screen
-        self.team = team
+        self.pokemon_list = pokemon_list
+        self.selected_index = 0
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.Font(font_path, 24)
-        self.title_font = pygame.font.Font(font_path, 32)
+        self.font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 28)
+        self.draw_background_fn = draw_background_fn  # ✅ ใช้พื้นหลังแผนที่
 
-        self.card_width = 220
-        self.card_height = 70
-        self.padding = 20
-        self.cols = 3
-        self.rows = 2
-        self.cards_per_page = self.cols * self.rows
+        self.page_size = 4
         self.page = 0
 
-        self.modal_width = self.cols * (self.card_width + self.padding) + self.padding
-        self.modal_height = self.rows * (self.card_height + self.padding) + 120
+        self.left_width = 220
+        self.right_width = 400
+        self.height = 320
         self.modal_rect = pygame.Rect(
-            (WINDOW_WIDTH - self.modal_width) // 2,
-            (WINDOW_HEIGHT - self.modal_height) // 2,
-            self.modal_width,
-            self.modal_height
+            (WINDOW_WIDTH - (self.left_width + self.right_width)) // 2,
+            (WINDOW_HEIGHT - self.height) // 2,
+            self.left_width + self.right_width,
+            self.height,
         )
+
+        self.colors = {
+            "Grass": (152, 251, 152),   # PaleGreen
+            "Fire": (255, 99, 71),      # Tomato
+            "Water": (135, 206, 235),   # SkyBlue
+            "Normal": (240, 240, 240)
+        }
 
     def draw(self):
         pygame.draw.rect(self.screen, (255, 255, 255), self.modal_rect, border_radius=16)
-        pygame.draw.rect(self.screen, (0, 0, 0), self.modal_rect, 3, border_radius=16)
 
-        title = self.title_font.render("YOUR POKEMON TEAM", True, (0, 0, 0))
-        self.screen.blit(title, (self.modal_rect.centerx - title.get_width() // 2, self.modal_rect.y + 20))
+        left_rect = pygame.Rect(self.modal_rect.x, self.modal_rect.y, self.left_width, self.height)
+        right_rect = pygame.Rect(left_rect.right, self.modal_rect.y, self.right_width, self.height)
 
-        start_x = self.modal_rect.x + self.padding
-        start_y = self.modal_rect.y + 70
+        pygame.draw.rect(self.screen, (255, 255, 255), left_rect)
+        pygame.draw.rect(self.screen, (245, 245, 245), right_rect)
 
-        start_index = self.page * self.cards_per_page
-        end_index = min(start_index + self.cards_per_page, len(self.team))
-        visible_team = self.team[start_index:end_index]
+        # 🔹 วาดฝั่งซ้าย (รายชื่อโปเกม่อน)
+        start = self.page * self.page_size
+        end = min(start + self.page_size, len(self.pokemon_list))
+        for i in range(start, end):
+            mon = self.pokemon_list[i]
+            y = self.modal_rect.y + 10 + (i - start) * 70
+            entry_rect = pygame.Rect(left_rect.x + 10, y, self.left_width - 20, 60)
 
-        for i, pokemon in enumerate(visible_team):
-            row = i // self.cols
-            col = i % self.cols
+            if i == self.selected_index:
+                pygame.draw.rect(self.screen, (255, 255, 200), entry_rect)
+                pygame.draw.rect(self.screen, (200, 200, 0), entry_rect, 2)
+            else:
+                pygame.draw.rect(self.screen, (255, 255, 255), entry_rect)
+                pygame.draw.rect(self.screen, (0, 0, 0), entry_rect, 1)
 
-            x = start_x + col * (self.card_width + self.padding)
-            y = start_y + row * (self.card_height + self.padding)
-            card_rect = pygame.Rect(x, y, self.card_width, self.card_height)
+            sprite = pygame.image.load(f"image/pokemon/{mon.name}.png").convert_alpha()
+            sprite = pygame.transform.scale(sprite, (40, 40))
+            self.screen.blit(sprite, (entry_rect.x + 8, entry_rect.y + 10))
 
-            pygame.draw.rect(self.screen, (245, 255, 245), card_rect, border_radius=12)
-            pygame.draw.rect(self.screen, (0, 100, 0), card_rect, 3, border_radius=12)
+            name_text = self.font.render(mon.name.upper(), True, (0, 0, 0))
+            self.screen.blit(name_text, (entry_rect.x + 60, entry_rect.y + 15))
 
-            name_text = self.font.render(pokemon.name.upper(), True, (0, 0, 0))
-            self.screen.blit(name_text, (x + 10, y + 8))
+        # 🔹 วาดฝั่งขวา (รายละเอียด)
+        if self.pokemon_list:
+            selected = self.pokemon_list[self.selected_index]
+            bg_color = self.colors.get(selected.element_type, (240, 240, 240))
+            pygame.draw.rect(self.screen, bg_color, right_rect)
 
-            bar_width = self.card_width - 20
-            bar_height = 18
-            bar_x = x + 10
-            bar_y = y + 35
-            ratio = pokemon.hp / pokemon.max_hp
+            sprite = pygame.image.load(f"image/pokemon/{selected.name}.png").convert_alpha()
+            sprite = pygame.transform.scale(sprite, (100, 100))
+            self.screen.blit(sprite, (right_rect.centerx - 50, right_rect.y + 20))
+
+            name = self.font.render(selected.name.upper(), True, (0, 0, 0))
+            self.screen.blit(name, (right_rect.centerx - name.get_width() // 2, right_rect.y + 130))
+
+            hp_text = self.font.render(f"{selected.hp}/{selected.max_hp} HP", True, (0, 0, 0))
+            self.screen.blit(hp_text, (right_rect.centerx - hp_text.get_width() // 2, right_rect.y + 170))
+
+            ratio = selected.hp / selected.max_hp
+            bar_width, bar_height = 180, 18
+            bar_x = right_rect.centerx - bar_width // 2
+            bar_y = right_rect.y + 200
             pygame.draw.rect(self.screen, (0, 0, 0), (bar_x, bar_y, bar_width, bar_height), 2)
-            pygame.draw.rect(self.screen, (0, 255, 0), (bar_x, bar_y, bar_width * ratio, bar_height))
+            pygame.draw.rect(self.screen, (0, 255, 0), (bar_x + 2, bar_y + 2, int((bar_width - 4) * ratio), bar_height - 4))
 
-            hp_text = self.font.render(f"{pokemon.hp}/{pokemon.max_hp} HP", True, (0, 0, 0))
-            self.screen.blit(hp_text, (x + 10, bar_y + 17))
+            type_text = self.font.render(f"TYPE: {selected.element_type.upper()}", True, (0, 0, 0))
+            self.screen.blit(type_text, (right_rect.centerx - type_text.get_width() // 2, bar_y + 30))
 
-        # Page number
-        page_text = self.font.render(f"PAGE {self.page + 1} / {(len(self.team)-1)//self.cards_per_page + 1}", True, (0, 0, 0))
-        self.screen.blit(page_text, (self.modal_rect.centerx - page_text.get_width() // 2, self.modal_rect.bottom - 35))
+        # 🔹 หมายเลขหน้า
+        total_pages = (len(self.pokemon_list) - 1) // self.page_size + 1
+        page_text = self.font.render(f"PAGE {self.page + 1} / {total_pages}", True, (50, 50, 50))
+        self.screen.blit(page_text, (self.modal_rect.centerx - page_text.get_width() // 2, self.modal_rect.bottom - 30))
 
-        # Arrows
-        arrow_y = self.modal_rect.centery
-        arrow_size = 20
+    def next_page(self):
+        max_page = (len(self.pokemon_list) - 1) // self.page_size
+        if self.page < max_page:
+            self.page += 1
+
+    def prev_page(self):
         if self.page > 0:
-            left_points = [
-                (self.modal_rect.left + 10, arrow_y),
-                (self.modal_rect.left + 10 + arrow_size, arrow_y - arrow_size // 2),
-                (self.modal_rect.left + 10 + arrow_size, arrow_y + arrow_size // 2),
-            ]
-            pygame.draw.polygon(self.screen, (0, 0, 0), left_points)
-
-        if end_index < len(self.team):
-            right_points = [
-                (self.modal_rect.right - 10, arrow_y),
-                (self.modal_rect.right - 10 - arrow_size, arrow_y - arrow_size // 2),
-                (self.modal_rect.right - 10 - arrow_size, arrow_y + arrow_size // 2),
-            ]
-            pygame.draw.polygon(self.screen, (0, 0, 0), right_points)
+            self.page -= 1
 
     def run(self):
         running = True
@@ -279,17 +292,24 @@ class PokemonTeamPopup:
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
-                    if event.key in [pygame.K_ESCAPE, pygame.K_LSHIFT, pygame.K_RSHIFT]:
+                    if event.key in (pygame.K_ESCAPE, pygame.K_LSHIFT, pygame.K_RSHIFT):
                         running = False
-                    elif event.key == pygame.K_RIGHT:
-                        max_page = (len(self.team) - 1) // self.cards_per_page
-                        self.page = min(self.page + 1, max_page)
-                    elif event.key == pygame.K_LEFT:
-                        self.page = max(self.page - 1, 0)
+                    elif event.key == pygame.K_UP:
+                        self.selected_index = (self.selected_index - 1) % len(self.pokemon_list)
+                        self.page = self.selected_index // self.page_size
+                    elif event.key == pygame.K_DOWN:
+                        self.selected_index = (self.selected_index + 1) % len(self.pokemon_list)
+                        self.page = self.selected_index // self.page_size
+
+            if self.draw_background_fn:
+                self.draw_background_fn()
+            else:
+                self.screen.fill((0, 0, 0))  # fallback
 
             self.draw()
             pygame.display.update()
             self.clock.tick(60)
+
 
 class CatchPopup:
     def __init__(self, screen, pokemon_name):
