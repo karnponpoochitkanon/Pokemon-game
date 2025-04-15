@@ -121,19 +121,29 @@ class MainGame:
             chosen = popup.run()
             self.player_monsters.insert(0, self.player_monsters.pop(self.player_monsters.index(chosen)))
 
-        battle = BattleScene(self.screen, self.player_monsters[0], wild_monster)
+        battle = BattleScene(self.screen, self.player_monsters[0], wild_monster, self.player_monsters)
         result = battle.run()
 
         if result == "win":
             wild_monster.hp = wild_monster.max_hp
             self.player_monsters.append(wild_monster)
 
+            # ลบจาก grass_lookup
             for rect_data, mon in list(self.grass_monster_lookup.items()):
                 if mon == wild_monster:
                     del self.grass_monster_lookup[rect_data]
                     break
+
+            # ✅ แสดง popup หลังจากกลับมาหน้า map
+            self.map.draw(self.screen)
+            self.player.draw(self.screen)
+            pygame.display.flip()
+            pygame.time.delay(300)  # นิดหน่อยให้หน้าจอรีเฟรชก่อน
+            popup = CatchPopup(self.screen, wild_monster.name)
+            popup.show()
+
         elif result == "lose":
-            pass  # Do not remove wild_monster if lost
+            pass  # ไม่ลบมอนถ้าแพ้
 
     def draw_heal_popup(self):
         font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 36)

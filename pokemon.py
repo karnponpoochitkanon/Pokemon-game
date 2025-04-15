@@ -210,6 +210,9 @@ class PokemonSelectionPopup:
                 self.screen.blit(box, box_rect)
                 self.screen.blit(msg, msg.get_rect(center=box_rect.center))
 
+            page_text = self.font.render(f"PAGE {self.page + 1} / {total_pages}", True, (50, 50, 50))
+            page_rect = page_text.get_rect(center=(self.modal_rect.centerx, self.modal_rect.bottom - 10))
+            self.screen.blit(page_text, page_rect)
             pygame.display.update()
             self.clock.tick(60)
 
@@ -218,17 +221,19 @@ class PokemonTeamPopup:
         self.screen = screen
         self.team = team
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.Font(font_path, 28)
+        self.font = pygame.font.Font(font_path, 24)
         self.title_font = pygame.font.Font(font_path, 32)
 
-        self.card_width = 200
-        self.card_height = 100
+        self.card_width = 220
+        self.card_height = 70
         self.padding = 20
-        self.rows = 2
         self.cols = 3
+        self.rows = 2
+        self.cards_per_page = self.cols * self.rows
+        self.page = 0
 
         self.modal_width = self.cols * (self.card_width + self.padding) + self.padding
-        self.modal_height = self.rows * (self.card_height + self.padding) + self.padding + 60
+        self.modal_height = self.rows * (self.card_height + self.padding) + 120
         self.modal_rect = pygame.Rect(
             (WINDOW_WIDTH - self.modal_width) // 2,
             (WINDOW_HEIGHT - self.modal_height) // 2,
@@ -246,7 +251,11 @@ class PokemonTeamPopup:
         start_x = self.modal_rect.x + self.padding
         start_y = self.modal_rect.y + 70
 
-        for i, pokemon in enumerate(self.team):
+        start_index = self.page * self.cards_per_page
+        end_index = min(start_index + self.cards_per_page, len(self.team))
+        visible_team = self.team[start_index:end_index]
+
+        for i, pokemon in enumerate(visible_team):
             row = i // self.cols
             col = i % self.cols
 
@@ -254,25 +263,45 @@ class PokemonTeamPopup:
             y = start_y + row * (self.card_height + self.padding)
             card_rect = pygame.Rect(x, y, self.card_width, self.card_height)
 
-            # พื้นหลัง
             pygame.draw.rect(self.screen, (245, 255, 245), card_rect, border_radius=12)
             pygame.draw.rect(self.screen, (0, 100, 0), card_rect, 3, border_radius=12)
 
-            # ชื่อ
             name_text = self.font.render(pokemon.name.upper(), True, (0, 0, 0))
-            self.screen.blit(name_text, (x + 10, y + 10))
+            self.screen.blit(name_text, (x + 10, y + 8))
 
-            # แถบ HP
             bar_width = self.card_width - 20
             bar_height = 18
             bar_x = x + 10
-            bar_y = y + 50
+            bar_y = y + 35
             ratio = pokemon.hp / pokemon.max_hp
             pygame.draw.rect(self.screen, (0, 0, 0), (bar_x, bar_y, bar_width, bar_height), 2)
             pygame.draw.rect(self.screen, (0, 255, 0), (bar_x, bar_y, bar_width * ratio, bar_height))
 
             hp_text = self.font.render(f"{pokemon.hp}/{pokemon.max_hp} HP", True, (0, 0, 0))
-            self.screen.blit(hp_text, (x + 10, bar_y + 24))
+            self.screen.blit(hp_text, (x + 10, bar_y + 17))
+
+        # Page number
+        page_text = self.font.render(f"PAGE {self.page + 1} / {(len(self.team)-1)//self.cards_per_page + 1}", True, (0, 0, 0))
+        self.screen.blit(page_text, (self.modal_rect.centerx - page_text.get_width() // 2, self.modal_rect.bottom - 35))
+
+        # Arrows
+        arrow_y = self.modal_rect.centery
+        arrow_size = 20
+        if self.page > 0:
+            left_points = [
+                (self.modal_rect.left + 10, arrow_y),
+                (self.modal_rect.left + 10 + arrow_size, arrow_y - arrow_size // 2),
+                (self.modal_rect.left + 10 + arrow_size, arrow_y + arrow_size // 2),
+            ]
+            pygame.draw.polygon(self.screen, (0, 0, 0), left_points)
+
+        if end_index < len(self.team):
+            right_points = [
+                (self.modal_rect.right - 10, arrow_y),
+                (self.modal_rect.right - 10 - arrow_size, arrow_y - arrow_size // 2),
+                (self.modal_rect.right - 10 - arrow_size, arrow_y + arrow_size // 2),
+            ]
+            pygame.draw.polygon(self.screen, (0, 0, 0), right_points)
 
     def run(self):
         running = True
@@ -282,9 +311,58 @@ class PokemonTeamPopup:
                     pygame.quit()
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE or event.key == pygame.K_LSHIFT or event.key == pygame.K_RSHIFT:
+                    if event.key in [pygame.K_ESCAPE, pygame.K_LSHIFT, pygame.K_RSHIFT]:
                         running = False
+                    elif event.key == pygame.K_RIGHT:
+                        max_page = (len(self.team) - 1) // self.cards_per_page
+                        self.page = min(self.page + 1, max_page)
+                    elif event.key == pygame.K_LEFT:
+                        self.page = max(self.page - 1, 0)
 
             self.draw()
             pygame.display.update()
             self.clock.tick(60)
+
+class CatchPopup:
+    def __init__(self, screen, pokemon_name):
+        self.screen = screen
+        self.name = pokemon_name
+        self.sprite = pygame.image.load(f"image/pokemon/{self.name}.png").convert_alpha()
+        self.sprite = pygame.transform.scale(self.sprite, (100, 100))
+        self.font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 36)
+        self.duration = 1200  # ⏱ แสดง 1.2 วินาที
+
+    def show(self):
+        start_time = pygame.time.get_ticks()
+        while pygame.time.get_ticks() - start_time < self.duration:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+            # กล่อง popup
+            box_width = 350
+            box_height = 200
+            box = pygame.Surface((box_width, box_height))
+            box.fill((255, 255, 255))  # พื้นหลังกล่อง
+
+            # ขอบชมพู #FF9999
+            border_rect = box.get_rect()
+            pygame.draw.rect(box, (255, 153, 153), border_rect, 4)
+
+            # ข้อความด้านบน
+            text = self.font.render(f"YOU CAUGHT {self.name.upper()}!", True, (0, 100, 0))
+            text_rect = text.get_rect(center=(box_width // 2, 40))
+            box.blit(text, text_rect)
+
+            # รูปโปเกม่อน
+            box.blit(self.sprite, (
+                box_width // 2 - self.sprite.get_width() // 2,
+                80
+            ))
+
+            # แสดงตรงกลางหน้าจอ
+            box_rect = box.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+            self.screen.blit(box, box_rect)
+
+            pygame.display.update()

@@ -3,11 +3,12 @@ import sys
 from setting import *
 
 class BattleScene:
-    def __init__(self, screen, player_pokemon, wild_pokemon):
+    def __init__(self, screen, player_pokemon, wild_pokemon, player_team):
         self.screen = screen
         self.player_pokemon = player_pokemon
         self.wild_pokemon = wild_pokemon
         self.bg = pygame.image.load("image/fight/forest.png")
+        self.player_team = player_team
 
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 28)
@@ -60,10 +61,27 @@ class BattleScene:
         frame_width, frame_height = 192, 192
         num_frames = 4
 
+        fighting_font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 64)
+        tip_font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 28)
+
         for i in range(num_frames):
             frame = sprite_sheet.subsurface(pygame.Rect(i * frame_width, 0, frame_width, frame_height))
             self.screen.blit(self.bg, (0, 0))
             self.draw_pokemon()
+
+            # ✅ แสดง FIGHTING!
+            title = fighting_font.render("FIGHTING!", True, (200, 0, 0))
+            self.screen.blit(title, (WINDOW_WIDTH // 2 - title.get_width() // 2, 20))
+
+            # ✅ แสดงปุ่ม "PRESS 1 TO CHANGE POKEMON" ถ้ามีมากกว่า 1 ตัว
+            if len(self.player_team) > 1:
+                msg = tip_font.render("PRESS 1 TO CHANGE POKEMON", True, (0, 0, 0))
+                box = pygame.Surface((msg.get_width() + 40, msg.get_height() + 20))
+                box.fill((255, 240, 240))
+                pygame.draw.rect(box, (255, 0, 0), box.get_rect(), 3)
+                box.blit(msg, (20, 10))
+                self.screen.blit(box, (30, WINDOW_HEIGHT - box.get_height() - 30))
+
             self.screen.blit(frame, target_pos)
             pygame.display.flip()
             pygame.time.delay(100)
@@ -79,9 +97,31 @@ class BattleScene:
         return 0
 
     def run(self):
-        while True:
+        fighting_font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 64)
+        tip_font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 28)
+
+        def draw_ui():
+            # BG + Pokemon
             self.screen.blit(self.bg, (0, 0))
             self.draw_pokemon()
+
+            # FIGHTING!
+            title = fighting_font.render("FIGHTING!", True, (200, 0, 0))
+            self.screen.blit(title, (WINDOW_WIDTH // 2 - title.get_width() // 2, 20))
+
+            # ✅ แสดงปุ่มเปลี่ยนโปเกม่อนถ้ามีมากกว่า 1 ตัว
+            if len(self.player_team) > 1:
+                msg = tip_font.render("PRESS 1 TO CHANGE POKEMON", True, (0, 0, 0))
+                box = pygame.Surface((msg.get_width() + 40, msg.get_height() + 20))
+                box.fill((255, 240, 240))
+                pygame.draw.rect(box, (255, 0, 0), box.get_rect(), 3)
+                box.blit(msg, (20, 10))
+
+                # ✅ วางที่มุมล่างซ้าย
+                self.screen.blit(box, (30, WINDOW_HEIGHT - box.get_height() - 30))
+
+        while True:
+            draw_ui()
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -102,6 +142,10 @@ class BattleScene:
 
                         if self.player_pokemon.hp <= 0:
                             return "lose"
+
+                    elif event.key == pygame.K_1:
+                        if len(self.player_team) > 1:
+                            return "run"
 
             pygame.display.flip()
             self.clock.tick(60)
