@@ -25,7 +25,7 @@ class PlayerMonsters:
             Pokemon("pikachu", "Normal"),
             Pokemon("furin", "Normal"),
             Pokemon("gus", "Normal"),
-            Pokemon("squirrel", "Grass"),  # ✅ เพิ่มตรงนี้
+            Pokemon("squirrel", "Grass"),
             Pokemon("cute", "Normal"),
             Pokemon("beagle", "Water"),
             Pokemon("firefox", "Fire")
@@ -39,8 +39,8 @@ class PlayerMonsters:
             Pokemon("eevee", "Normal"),
             Pokemon("furin", "Normal"),
             Pokemon("gus", "Normal"),
-            Pokemon("squirrel", "Grass"),   # ✅ ใหม่
-            Pokemon("cute", "Normal"),      # ✅ ใหม่
+            Pokemon("squirrel", "Grass"),
+            Pokemon("cute", "Normal"),
             Pokemon("beagle", "Water"),
             Pokemon("firefox", "Fire")
         ]
@@ -191,7 +191,7 @@ class TeamStatusPopup:
         self.selected_index = 0
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 28)
-        self.draw_background_fn = draw_background_fn  # ✅ ใช้พื้นหลังแผนที่
+        self.draw_background_fn = draw_background_fn  #  ใช้พื้นหลังแผนที่
 
         self.page_size = 4
         self.page = 0
@@ -222,7 +222,7 @@ class TeamStatusPopup:
         pygame.draw.rect(self.screen, (255, 255, 255), left_rect)
         pygame.draw.rect(self.screen, (245, 245, 245), right_rect)
 
-        # 🔹 วาดฝั่งซ้าย (รายชื่อโปเกม่อน)
+        #  ฝั่งซ้ายรายชื่อโปเกม่อน
         start = self.page * self.page_size
         end = min(start + self.page_size, len(self.pokemon_list))
         for i in range(start, end):
@@ -244,7 +244,7 @@ class TeamStatusPopup:
             name_text = self.font.render(mon.name.upper(), True, (0, 0, 0))
             self.screen.blit(name_text, (entry_rect.x + 60, entry_rect.y + 15))
 
-        # 🔹 วาดฝั่งขวา (รายละเอียด)
+        #  ฝั่งขวารายละเอียด
         if self.pokemon_list:
             selected = self.pokemon_list[self.selected_index]
             bg_color = self.colors.get(selected.element_type, (240, 240, 240))
@@ -270,7 +270,7 @@ class TeamStatusPopup:
             type_text = self.font.render(f"TYPE: {selected.element_type.upper()}", True, (0, 0, 0))
             self.screen.blit(type_text, (right_rect.centerx - type_text.get_width() // 2, bar_y + 30))
 
-        # 🔹 หมายเลขหน้า
+        #  หมายเลขหน้า
         total_pages = (len(self.pokemon_list) - 1) // self.page_size + 1
         page_text = self.font.render(f"PAGE {self.page + 1} / {total_pages}", True, (50, 50, 50))
         self.screen.blit(page_text, (self.modal_rect.centerx - page_text.get_width() // 2, self.modal_rect.bottom - 30))
@@ -318,7 +318,7 @@ class CatchPopup:
         self.sprite = pygame.image.load(f"image/pokemon/{self.name}.png").convert_alpha()
         self.sprite = pygame.transform.scale(self.sprite, (100, 100))
         self.font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 36)
-        self.duration = 1200  # ⏱ แสดง 1.2 วินาที
+        self.duration = 1200  #  แสดง 1.2 วินาที
 
     def show(self):
         start_time = pygame.time.get_ticks()
@@ -334,7 +334,7 @@ class CatchPopup:
             box = pygame.Surface((box_width, box_height))
             box.fill((255, 255, 255))  # พื้นหลังกล่อง
 
-            # ขอบชมพู #FF9999
+
             border_rect = box.get_rect()
             pygame.draw.rect(box, (255, 153, 153), border_rect, 4)
 

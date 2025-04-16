@@ -3,6 +3,10 @@ import sys
 from setting import *
 import os
 from pokemon import *
+import pygame
+import sys
+from pokemon import Pokemon
+from setting import WINDOW_WIDTH, WINDOW_HEIGHT
 
 class BattleScene:
     def __init__(self, screen, player_pokemon, wild_pokemon, player_team):
@@ -147,11 +151,6 @@ class BattleScene:
 
             pygame.display.flip()
             self.clock.tick(60)
-
-import pygame
-import sys
-from pokemon import Pokemon
-from setting import WINDOW_WIDTH, WINDOW_HEIGHT
 
 class TripleBattleScene:
     def __init__(self, screen, player_team, enemy_team):

@@ -13,7 +13,7 @@ class Player:
         self.animation_speed = 0.15
         self.status = 'down'
         self.image = self.frames[self.status][0]
-        self.pos = Vector(20, 220)  # ✅ เริ่มจากมุมล่างซ้าย
+        self.pos = Vector(20, 220)
 
     def update(self, keys, block_rects):
         self.direction = Vector(0, 0)
@@ -100,17 +100,13 @@ class CharacterSelectMenu:
             label_rect = label.get_rect(center=box_rect.center)
             self.screen.blit(label, label_rect)
 
-        # แสดงตัวอย่าง sprite จากเฟรม [0,0] ขนาด 128x128
-        # ตัวอย่าง sprite preview
         _, preview_path = self.characters[self.selected]
         sheet = pygame.image.load(preview_path).convert_alpha()
 
-        # ดึงเฟรม [0,0] จาก sprite ขนาด 128x128 px
-        frame = sheet.subsurface(pygame.Rect(0, 0, 128, 128))  # ใช้ 128x128 แทน 64x64
+        frame = sheet.subsurface(pygame.Rect(0, 0, 128, 128))
 
-        # ขยายให้ใหญ่ขึ้น (แล้วแต่ชอบ อันเก่าใช้ 192x192)
-        preview = pygame.transform.scale(frame, (230, 230))  # หรือมากกว่านี้ก็ได้
-        preview_rect = preview.get_rect(center=(WINDOW_WIDTH // 2, 500))  # ตำแหน่งให้ต่ำลงมาหน่อย
+        preview = pygame.transform.scale(frame, (230, 230))
+        preview_rect = preview.get_rect(center=(WINDOW_WIDTH // 2, 500))
         self.screen.blit(preview, preview_rect)
 
 
@@ -136,11 +132,11 @@ class CharacterSelectMenu:
 class PlayerTrainer:
     def __init__(self, name):
         self.name = name
-        self.team = []  # รายการโปเกม่อนในทีม
-        self.add_pokemon(Pokemon("pikachu", "Normal"))  # เริ่มต้นด้วย Pikachu
+        self.team = []
+        self.add_pokemon(Pokemon("pikachu", "Normal"))
 
     def add_pokemon(self, pokemon):
-        self.team.append(pokemon)  # ไม่จำกัดจำนวน
+        self.team.append(pokemon)
 
     def show_team(self):
         print(f"{self.name}'s Team:")

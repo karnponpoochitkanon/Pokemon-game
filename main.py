@@ -136,11 +136,11 @@ class MainGame:
                     del self.grass_monster_lookup[rect_data]
                     break
 
-            # ✅ แสดง popup หลังจากกลับมาหน้า map
+            #  แสดง popup หลังจากกลับมาหน้า map
             self.map.draw(self.screen)
             self.player.draw(self.screen)
             pygame.display.flip()
-            pygame.time.delay(300)  # นิดหน่อยให้หน้าจอรีเฟรชก่อน
+            pygame.time.delay(300)
             popup = CatchPopup(self.screen, wild_monster.name)
             popup.show()
 
@@ -181,7 +181,7 @@ class MainGame:
             self.map.draw(self.screen)
             self.player.draw(self.screen)
 
-            # ✅ HEAL TREE Label
+            #  HEAL TREE Label
             font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 24)
             healtree_objects = [obj for obj in self.map.tmx_data.objects if obj.name == "healtree"]
             if healtree_objects:
@@ -193,7 +193,7 @@ class MainGame:
                 self.screen.blit(shadow, (label_pos[0] + 2, label_pos[1] + 2))
                 self.screen.blit(label, label_pos)
 
-            # ✅ DEBUG Grass Zones
+            #  DEBUG Grass Zones
             if self.debug_show_grass:
                 debug_font = pygame.font.Font(None, 40)
                 for rect_data in self.grass_monster_lookup:
@@ -204,11 +204,11 @@ class MainGame:
                     self.screen.blit(shadow, shadow.get_rect(center=(center[0] + 2, center[1] + 2)))
                     self.screen.blit(text, text.get_rect(center=center))
 
-            # ✅ Show Team Popup
+            #  Show Team Popup
             if show_team_popup:
                 team_popup.draw()
 
-            # ✅ Heal Popup
+            #  Heal Popup
             if self.show_heal_popup and pygame.time.get_ticks() - self.heal_popup_timer < 1500:
                 self.draw_heal_popup()
             else:
@@ -216,7 +216,7 @@ class MainGame:
 
             pygame.display.update()
 
-            # ✅ Event Handling
+            #  Event Handling
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -236,7 +236,7 @@ class MainGame:
                         elif event.key in [pygame.K_LSHIFT, pygame.K_RSHIFT]:
                             show_team_popup = True
 
-            # ✅ Trigger events if not showing popup
+            #  Trigger events if not showing popup
             if not show_team_popup:
                 # 🌿 Battle in grass
                 for rect_data, monster in list(self.grass_monster_lookup.items()):
@@ -245,7 +245,7 @@ class MainGame:
                         self.start_battle(monster)
                         break
 
-                # 🌳 Heal Tree
+                #  Heal Tree
                 for obj in self.map.tmx_data.objects:
                     if obj.name == "healtree":
                         heal_rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
@@ -255,12 +255,12 @@ class MainGame:
                             self.show_heal_popup = True
                             self.heal_popup_timer = pygame.time.get_ticks()
 
-                # 👑 Final Boss Battle (YIM)
+                #  Final Boss Battle (YIM)
                 for obj in self.map.tmx_data.objects:
                     if obj.name == "yim":
                         yim_rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
                         if yim_rect.colliderect(self.player.rect) and not self.final_battle_done:
-                            # ✅ Final boss selection with background
+                            #  Final boss selection with background
                             popup = FinalBossSelectionPopup(
                                 self.screen,
                                 self.player_monsters,
@@ -268,7 +268,7 @@ class MainGame:
                             )
                             selected = popup.run()
 
-                            # ✅ Yim Final Battle (3 vs 3)
+                            #  Yim Final Battle (3 vs 3)
                             from yim import YimFinalBattle
                             battle = YimFinalBattle(
                                 self.screen,
