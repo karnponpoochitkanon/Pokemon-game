@@ -2,12 +2,10 @@
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="23" tilewidth="32" tileheight="32" infinite="0" nextlayerid="21" nextobjectid="202">
  <tileset firstgid="1" source="../tileset/world.tsx"/>
  <tileset firstgid="841" source="../tileset/grass.tsx"/>
- <tileset firstgid="842" source="../tileset/house_small.tsx"/>
  <tileset firstgid="858" source="../tileset/grassnomon.tsx"/>
  <tileset firstgid="859" source="../tileset/tree.tsx"/>
  <tileset firstgid="862" source="../tileset/hospital.tsx"/>
  <tileset firstgid="880" source="../tileset/young_girl.tsx"/>
- <tileset firstgid="912" source="../tileset/heal_tree.tsx"/>
  <tileset firstgid="915" source="../tileset/healtree.tsx"/>
  <layer id="1" name="เลเยอร์ไทล์ 1" width="40" height="23">
   <data encoding="csv">
