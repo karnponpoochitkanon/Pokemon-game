@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="23" tilewidth="32" tileheight="32" infinite="0" nextlayerid="19" nextobjectid="198">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="23" tilewidth="32" tileheight="32" infinite="0" nextlayerid="21" nextobjectid="202">
  <tileset firstgid="1" source="../tileset/world.tsx"/>
  <tileset firstgid="841" source="../tileset/grass.tsx"/>
  <tileset firstgid="842" source="../tileset/house_small.tsx"/>
@@ -8,6 +8,7 @@
  <tileset firstgid="862" source="../tileset/hospital.tsx"/>
  <tileset firstgid="880" source="../tileset/young_girl.tsx"/>
  <tileset firstgid="912" source="../tileset/heal_tree.tsx"/>
+ <tileset firstgid="915" source="../tileset/healtree.tsx"/>
  <layer id="1" name="เลเยอร์ไทล์ 1" width="40" height="23">
   <data encoding="csv">
 163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,
@@ -107,13 +108,13 @@
   <object id="150" name="tree" gid="860" x="1174.88" y="143.648" width="100.778" height="50.389"/>
   <object id="152" name="tree" gid="859" x="1175.65" y="93.9487" width="100.778" height="50.389"/>
  </objectgroup>
- <objectgroup id="18" name="heal_tree">
-  <object id="195" name="healtree" gid="912" x="290.545" y="83.1364" width="128" height="64"/>
-  <object id="196" name="healtree" gid="913" x="290.545" y="145.636" width="128" height="64"/>
-  <object id="197" name="healtree" gid="914" x="290.545" y="208.136" width="128" height="64"/>
- </objectgroup>
  <objectgroup id="17" name="yim">
   <object id="185" name="yim" gid="880" x="1139.73" y="460.987" width="128" height="64"/>
   <object id="186" name="yim" gid="884" x="1138.56" y="521.523" width="128" height="64"/>
+ </objectgroup>
+ <objectgroup id="20" name="healtree">
+  <object id="198" name="healtree" gid="915" x="300.773" y="87.6818" width="128" height="64"/>
+  <object id="199" name="healtree" gid="916" x="299.636" y="147.909" width="128" height="64"/>
+  <object id="200" name="healtree" gid="917" x="299.636" y="211.545" width="128" height="64"/>
  </objectgroup>
 </map>
