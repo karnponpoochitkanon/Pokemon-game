@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="23" tilewidth="32" tileheight="32" infinite="0" nextlayerid="18" nextobjectid="182">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="23" tilewidth="32" tileheight="32" infinite="0" nextlayerid="19" nextobjectid="198">
  <tileset firstgid="1" source="../tileset/world.tsx"/>
  <tileset firstgid="841" source="../tileset/grass.tsx"/>
  <tileset firstgid="842" source="../tileset/house_small.tsx"/>
  <tileset firstgid="858" source="../tileset/grassnomon.tsx"/>
  <tileset firstgid="859" source="../tileset/tree.tsx"/>
- <tileset firstgid="862" source="../tileset/teal_tree_bush.tsx"/>
- <tileset firstgid="865" source="../tileset/hospital.tsx"/>
- <tileset firstgid="883" source="../tileset/young_girl.tsx"/>
+ <tileset firstgid="862" source="../tileset/hospital.tsx"/>
+ <tileset firstgid="880" source="../tileset/young_girl.tsx"/>
+ <tileset firstgid="912" source="../tileset/heal_tree.tsx"/>
  <layer id="1" name="เลเยอร์ไทล์ 1" width="40" height="23">
   <data encoding="csv">
 163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,163,164,
@@ -107,15 +107,13 @@
   <object id="150" name="tree" gid="860" x="1174.88" y="143.648" width="100.778" height="50.389"/>
   <object id="152" name="tree" gid="859" x="1175.65" y="93.9487" width="100.778" height="50.389"/>
  </objectgroup>
- <objectgroup id="15" name="heal_tree">
-  <object id="174" name="healtree" gid="862" x="288.099" y="87.3826" width="128" height="64"/>
-  <object id="175" name="healtree" gid="863" x="289.097" y="151.17" width="128" height="64"/>
-  <object id="176" name="healtree" gid="864" x="286.154" y="213.555" width="128" height="64"/>
+ <objectgroup id="18" name="heal_tree">
+  <object id="195" name="healtree" gid="912" x="290.545" y="83.1364" width="128" height="64"/>
+  <object id="196" name="healtree" gid="913" x="290.545" y="145.636" width="128" height="64"/>
+  <object id="197" name="healtree" gid="914" x="290.545" y="208.136" width="128" height="64"/>
  </objectgroup>
  <objectgroup id="17" name="yim">
-  <object id="178" name="yim" gid="883" x="1152.22" y="449.191" width="64" height="64"/>
-  <object id="179" name="yim" gid="884" x="1215.8" y="449.063" width="64" height="64"/>
-  <object id="180" name="yim" gid="891" x="1152.23" y="512.561" width="64" height="64"/>
-  <object id="181" name="yim" gid="892" x="1216.09" y="512.569" width="64" height="64"/>
+  <object id="185" name="yim" gid="880" x="1139.73" y="460.987" width="128" height="64"/>
+  <object id="186" name="yim" gid="884" x="1138.56" y="521.523" width="128" height="64"/>
  </objectgroup>
 </map>

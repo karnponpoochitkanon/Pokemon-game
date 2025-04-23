@@ -4,6 +4,7 @@ from setting import *
 
 class Map:
     def __init__(self, filename):
+        print(filename)
         self.tmx_data = pytmx.load_pygame(filename, pixelalpha=True)
         self.grass_rects = self.get_grass_rects()
         print("📍 Grass zones loaded:", len(self.grass_rects))
