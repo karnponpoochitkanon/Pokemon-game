@@ -114,9 +114,8 @@ class FinalBossSelectionPopup:
         self.screen = screen
         self.pokemon_list = pokemon_list
         self.font = pygame.font.Font(font_path, 28)
-        self.draw_background_fn = draw_background_fn  # 👈 เพิ่ม
+        self.draw_background_fn = draw_background_fn
         self.clock = pygame.time.Clock()
-
 
         self.card_width = 160
         self.card_height = 220
@@ -128,7 +127,7 @@ class FinalBossSelectionPopup:
         self.cursor_index = 0
 
         self.modal_width = self.cards_per_page * (self.card_width + self.padding) + self.padding
-        self.modal_height = self.card_height + 140
+        self.modal_height = self.card_height + 160
         self.modal_rect = pygame.Rect(
             (screen.get_width() - self.modal_width) // 2,
             (screen.get_height() - self.modal_height) // 2,
@@ -169,12 +168,27 @@ class FinalBossSelectionPopup:
             name_surf = self.font.render(pokemon.name.upper(), True, (0, 0, 0))
             self.screen.blit(name_surf, (x + (self.card_width - name_surf.get_width()) // 2, y + 120))
 
+            # 🔋 Draw HP bar
+            hp_ratio = pokemon.hp / pokemon.max_hp
+            hp_bar_x = x + 10
+            hp_bar_y = y + 150
+            hp_bar_width = self.card_width - 20
+            pygame.draw.rect(self.screen, (0, 0, 0), (hp_bar_x, hp_bar_y, hp_bar_width, 10))
+            pygame.draw.rect(self.screen, (0, 255, 0), (hp_bar_x, hp_bar_y, hp_bar_width * hp_ratio, 10))
+
+            hp_text = self.font.render(f"{pokemon.hp}/{pokemon.max_hp} HP", True, (0, 0, 0))
+            self.screen.blit(hp_text, (x + (self.card_width - hp_text.get_width()) // 2, hp_bar_y + 12))
+
         info = self.font.render(f"Selected: {len(self.selected_indices)} / 3", True, (0, 0, 0))
         self.screen.blit(info, (self.modal_rect.centerx - info.get_width() // 2, self.modal_rect.bottom - 60))
 
         if len(self.selected_indices) > 0:
             ok_msg = self.font.render("Press O to Start", True, (0, 100, 0))
             self.screen.blit(ok_msg, (self.modal_rect.centerx - ok_msg.get_width() // 2, self.modal_rect.bottom - 30))
+
+        cancel_msg = self.font.render("Press 1 to Cancel and Return", True, (150, 0, 0))
+        self.screen.blit(cancel_msg,
+                         (self.modal_rect.centerx - cancel_msg.get_width() // 2, self.modal_rect.bottom - 25))
 
     def run(self):
         while True:
@@ -196,6 +210,8 @@ class FinalBossSelectionPopup:
                             self.selected_indices.append(self.cursor_index)
                     elif event.key == pygame.K_o and len(self.selected_indices) > 0:
                         return [self.pokemon_list[i] for i in self.selected_indices]
+                    elif event.key == pygame.K_1:
+                        return None
 
             if self.draw_background_fn:
                 self.draw_background_fn(self.screen)

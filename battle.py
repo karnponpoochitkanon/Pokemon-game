@@ -164,7 +164,7 @@ class TripleBattleScene:
         self.enemy_team = enemy_team
 
         self.sprite_size = (96, 96)
-        self.padding_x = 100  # ห่างจากขอบซ้าย/ขวา
+        self.padding_x = 100
         self.y_positions = [100, 250, 400]
 
         self.player_positions = [(self.padding_x, y) for y in self.y_positions]
@@ -179,13 +179,13 @@ class TripleBattleScene:
             for mon in self.enemy_team
         ]
 
-        self.player_index = 0
-        self.enemy_index = 0
-        self.player_turn = True
+        self.state = "player_phase"
+        self.current_player_index = 0
+        self.current_target_index = 0
         self.delay_timer = 0
-        self.delay_interval = 800  # มิลลิวินาที
+        self.delay_interval = 800
 
-    def draw_health_bar(self, x, y, mon: Pokemon):
+    def draw_health_bar(self, x, y, mon):
         ratio = mon.hp / mon.max_hp
         pygame.draw.rect(self.screen, (255, 255, 255), (x, y, 110, 16))
         pygame.draw.rect(self.screen, (0, 0, 0), (x, y, 110, 16), 2)
@@ -194,47 +194,67 @@ class TripleBattleScene:
         self.screen.blit(name, (x, y - 22))
 
     def play_attack_animation(self, attacker, target_pos):
-        type_map = {
-            "Normal": "scratch",
-            "Fire": "fire",
-            "Water": "splash",
-            "Grass": "green"
-        }
-        skill_file = type_map.get(attacker.element_type, "scratch")
-        sprite = pygame.image.load(f"image/skill/{skill_file}.png").convert_alpha()
-
-        frame_width, frame_height = 192, 192
-        frames = 4
-
-        for i in range(frames):
-            frame = sprite.subsurface((i * frame_width, 0, frame_width, frame_height))
+        type_map = {"Normal": "scratch", "Fire": "fire", "Water": "splash", "Grass": "green"}
+        sprite = pygame.image.load(f"image/skill/{type_map.get(attacker.element_type, 'scratch')}.png").convert_alpha()
+        for i in range(4):
+            frame = sprite.subsurface((i * 192, 0, 192, 192))
             self.draw_scene()
             self.screen.blit(frame, target_pos)
             pygame.display.flip()
             pygame.time.delay(100)
 
-    def attack(self, attacker: Pokemon, defender: Pokemon):
+    def attack(self, attacker, defender):
         if attacker.hp <= 0 or defender.hp <= 0:
             return
-        bonus = 20 if (attacker.element_type, defender.element_type) in [
-            ("Water", "Fire"), ("Fire", "Grass"), ("Grass", "Water")
-        ] else 0
-        defender.hp -= attacker.base_attack + bonus
-        defender.hp = max(0, defender.hp)
+        bonus = 20 if (attacker.element_type, defender.element_type) in [("Water", "Fire"), ("Fire", "Grass"), ("Grass", "Water")] else 0
+        defender.hp = max(0, defender.hp - (attacker.base_attack + bonus))
 
     def draw_scene(self):
         self.screen.blit(self.bg, (0, 0))
 
+        # 🔺 แสดงคำว่า BATTLE ด้านบน
+        title_font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 60)
+        battle_title = title_font.render("BATTLE", True, (200, 0, 0))
+        self.screen.blit(battle_title, (WINDOW_WIDTH // 2 - battle_title.get_width() // 2, 20))
+
+        # 🔺 วาดทีมผู้เล่น
         for i, mon in enumerate(self.player_team):
             self.screen.blit(self.player_sprites[i], self.player_positions[i])
             self.draw_health_bar(self.player_positions[i][0], self.player_positions[i][1] - 30, mon)
 
+        # 🔺 วาดทีมบอส YIM
         for i, mon in enumerate(self.enemy_team):
             self.screen.blit(self.enemy_sprites[i], self.enemy_positions[i])
             self.draw_health_bar(self.enemy_positions[i][0], self.enemy_positions[i][1] - 30, mon)
 
-        tip = self.font.render("SPACE = ATTACK  |  🔺 = Next Turn", True, (0, 0, 0))
+        # 🔺 UI ข้างล่างแบบใช้ฟอนต์ที่รองรับ Unicode ลูกศร
+        ui_font = pygame.font.SysFont(None, 26)
+        # แทน ← / → ด้วยข้อความแทน
+        tip = ui_font.render("LEFT / RIGHT : TARGET   |   ENTER : ATTACK", True, (0, 0, 0))
         self.screen.blit(tip, (WINDOW_WIDTH // 2 - tip.get_width() // 2, WINDOW_HEIGHT - 40))
+
+        # 🔺 กรอบแดงรอบศัตรูที่ถูกเลือก
+        if self.state == "player_phase":
+            targetable = [e for e in self.enemy_team if e.hp > 0]
+            if targetable:
+                selected = targetable[self.current_target_index % len(targetable)]
+                index = self.enemy_team.index(selected)
+                x, y = self.enemy_positions[index]
+                pygame.draw.rect(self.screen, (255, 0, 0),
+                                 (x - 4, y - 4, self.sprite_size[0] + 8, self.sprite_size[1] + 8), 3)
+
+    def show_result(self, text):
+        overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+        overlay.set_alpha(180)
+        overlay.fill((0, 0, 0))
+        self.screen.blit(overlay, (0, 0))
+
+        font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 80)
+        label = font.render(text, True, (255, 255, 255))
+        rect = label.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
+        self.screen.blit(label, rect)
+        pygame.display.flip()
+        pygame.time.delay(2000)
 
     def run(self):
         while True:
@@ -242,38 +262,60 @@ class TripleBattleScene:
             pygame.display.update()
 
             if all(p.hp <= 0 for p in self.player_team):
+                self.show_result("LOSER")
                 return "lose"
             if all(e.hp <= 0 for e in self.enemy_team):
+                self.show_result("WINNER")
                 return "win"
 
             now = pygame.time.get_ticks()
-            if now - self.delay_timer > self.delay_interval:
-                if self.player_turn:
-                    attacker = self.player_team[self.player_index % len(self.player_team)]
-                    if attacker.hp > 0:
-                        targets = [e for e in self.enemy_team if e.hp > 0]
-                        if targets:
-                            target = targets[self.player_index % len(targets)]
+
+            if self.state == "player_phase":
+                attacker = self.player_team[self.current_player_index]
+                if attacker.hp <= 0:
+                    self.current_player_index += 1
+                    if self.current_player_index >= len(self.player_team):
+                        self.state = "enemy_phase"
+                    continue
+
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        pygame.quit()
+                        sys.exit()
+                    elif event.type == pygame.KEYDOWN:
+                        targetable = [e for e in self.enemy_team if e.hp > 0]
+                        if not targetable:
+                            continue
+                        if event.key == pygame.K_LEFT:
+                            self.current_target_index = (self.current_target_index - 1) % len(targetable)
+                        elif event.key == pygame.K_RIGHT:
+                            self.current_target_index = (self.current_target_index + 1) % len(targetable)
+                        elif event.key == pygame.K_RETURN:
+                            target = targetable[self.current_target_index % len(targetable)]
                             self.play_attack_animation(attacker, self.enemy_positions[self.enemy_team.index(target)])
                             self.attack(attacker, target)
-                    self.player_index += 1
-                    self.player_turn = False
-                else:
-                    attacker = self.enemy_team[self.enemy_index % len(self.enemy_team)]
-                    if attacker.hp > 0:
-                        targets = [p for p in self.player_team if p.hp > 0]
-                        if targets:
-                            target = targets[self.enemy_index % len(targets)]
-                            self.play_attack_animation(attacker, self.player_positions[self.player_team.index(target)])
-                            self.attack(attacker, target)
-                    self.enemy_index += 1
-                    self.player_turn = True
+                            self.current_player_index += 1
+                            if self.current_player_index >= len(self.player_team):
+                                self.state = "enemy_phase"
 
+            elif self.state == "enemy_phase" and now - self.delay_timer > self.delay_interval:
+                for i in range(len(self.enemy_team)):
+                    attacker = self.enemy_team[i]
+                    if attacker.hp <= 0:
+                        continue
+                    if i >= len(self.player_team):
+                        break
+                    defender = self.player_team[i]
+                    if defender.hp <= 0:
+                        continue
+                    self.play_attack_animation(attacker, self.player_positions[i])
+                    self.attack(attacker, defender)
+                    self.draw_scene()
+                    pygame.display.update()
+                    pygame.time.delay(500)
+
+                self.state = "player_phase"
+                self.current_player_index = 0
                 self.delay_timer = now
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
 
             self.clock.tick(60)

@@ -193,6 +193,17 @@ class MainGame:
                 self.screen.blit(shadow, (label_pos[0] + 2, label_pos[1] + 2))
                 self.screen.blit(label, label_pos)
 
+            # วาดข้อความ BATTLE บนหัว YIM
+            yim_objects = [obj for obj in self.map.tmx_data.objects if obj.name == "yim"]
+            if yim_objects:
+                topmost_yim = min(yim_objects, key=lambda o: o.y)
+                yim_rect = pygame.Rect(topmost_yim.x, topmost_yim.y, topmost_yim.width, topmost_yim.height)
+                label = font.render("BATTLE", True, (200, 0, 0))
+                shadow = font.render("BATTLE", True, (255, 255, 255))
+                label_pos = (yim_rect.centerx - label.get_width() // 2, yim_rect.top - 12)
+                self.screen.blit(shadow, (label_pos[0] + 2, label_pos[1] + 2))
+                self.screen.blit(label, label_pos)
+
             #  DEBUG Grass Zones
             if self.debug_show_grass:
                 debug_font = pygame.font.Font(None, 40)
@@ -257,18 +268,22 @@ class MainGame:
 
                 #  Final Boss Battle (YIM)
                 for obj in self.map.tmx_data.objects:
+                    # ด้านใน for obj in self.map.tmx_data.objects:
                     if obj.name == "yim":
                         yim_rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
                         if yim_rect.colliderect(self.player.rect) and not self.final_battle_done:
-                            #  Final boss selection with background
                             popup = FinalBossSelectionPopup(
                                 self.screen,
                                 self.player_monsters,
                                 draw_background_fn=lambda screen: self.map.draw(screen)
                             )
                             selected = popup.run()
+                            if not selected:
+                                # ✅ ย้ายตัวละครกลับไปจุดเริ่มต้น (เช่นมุมล่างซ้าย)
+                                self.player.pos.x = 20
+                                self.player.pos.y = 220
+                                continue
 
-                            #  Yim Final Battle (3 vs 3)
                             from yim import YimFinalBattle
                             battle = YimFinalBattle(
                                 self.screen,
@@ -279,9 +294,11 @@ class MainGame:
 
                             from battle import TripleBattleScene
                             triple_battle = TripleBattleScene(self.screen, selected, boss_team)
-                            triple_battle.run()
+                            result = triple_battle.run()
 
-                            self.final_battle_done = True
+                            if result == "win":
+                                self.final_battle_done = True  # ✅ ชนะแล้วไม่ต้องสู้ซ้ำ
+                            # ถ้าแพ้ไม่ทำอะไร → กลับไป heal ได้
                             break
 
             self.clock.tick(60)

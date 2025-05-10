@@ -159,7 +159,7 @@ class PokemonSelectionPopup:
                         if selected.hp > 0:
                             return selected
                         else:
-                            error_message = "This Pokémon has no HP!"
+                            error_message = "This Pokemon has no HP!"
                             error_timer = pygame.time.get_ticks()
 
             self.draw()
