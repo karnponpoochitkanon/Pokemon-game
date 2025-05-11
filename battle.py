@@ -271,17 +271,22 @@ class TripleBattleScene:
                 return "win"
 
             now = pygame.time.get_ticks()
+
             if self.state == "player_phase":
-                # รีเซ็ตแค่เมื่อเข้าสู่ phase นี้เท่านั้น
+                # ✅ รีเซ็ต flags เมื่อเริ่มรอบใหม่
                 if self.current_player_index == 0 and all(self.has_attacked_flags):
-                    self.has_attacked_flags = [False for _ in self.player_team]
+                    self.has_attacked_flags = [False] * len(self.player_team)
+
+                # ✅ ป้องกัน IndexError
+                if self.current_player_index >= len(self.player_team):
+                    self.state = "enemy_phase"
+                    continue
 
                 attacker = self.player_team[self.current_player_index]
 
+                # ✅ ข้ามตัวที่ตายหรือเคยโจมตีแล้ว
                 if attacker.hp <= 0 or self.has_attacked_flags[self.current_player_index]:
                     self.current_player_index += 1
-                    if self.current_player_index >= len(self.player_team):
-                        self.state = "enemy_phase"
                     continue
 
                 for event in pygame.event.get():
@@ -330,7 +335,7 @@ class TripleBattleScene:
 
                 self.state = "player_phase"
                 self.current_player_index = 0
-                self.has_attacked_flags = [False] * len(self.player_team)  # รีเซ็ตเพื่อรอบใหม่
+                self.has_attacked_flags = [False] * len(self.player_team)
                 self.delay_timer = now
 
             self.clock.tick(60)
