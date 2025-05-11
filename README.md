@@ -8,8 +8,8 @@ A full-featured Pokémon-style RPG game built with Python and Pygame, supporting
 
 1. **Clone the repository**  
 ```bash
-git clone https://github.com/your-username/pokemon-rpg.git
-cd pokemon-rpg
+git clone https://github.com/karnponpoochitkanon/Pokemon-game.git
+cd Pokemon-game
 ```
 
 2. **Install dependencies**  
@@ -51,7 +51,7 @@ python3 main.py
 - `A` → Show debug grass zones
 
 ### ⚔️ Wild Battle (1v1)
-- `Enter` → Attack
+- `Space` → Attack
 - `1` → Run
 
 ### ⚔️ Final Boss Battle (3v3)
@@ -88,7 +88,7 @@ All data is saved in `game_stats.csv`:
 Run the GUI via:
 
 ```bash
-python GUI.py
+python3 GUI.py
 ```
 
 Includes graphs and summary stats such as:
@@ -116,11 +116,6 @@ Includes graphs and summary stats such as:
 
 ---
 
-## 📄 License
-
-MIT License – free to reuse, fork, and build your own Pokémon world 🐾
-
----
 Let the journey begin! 🚀
 
 ⚔️ In the 3v3 Final Boss Battle, if players press keys too rapidly (especially Enter to attack), the game may crash due to an IndexError.
