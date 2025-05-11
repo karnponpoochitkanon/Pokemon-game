@@ -8,6 +8,8 @@ from pokemon import *
 from battle import *
 from yim import *
 from pokemon import Pokemon
+from datetime import datetime
+from collection import save_game_data_to_csv
 
 class StartMenu:
     def __init__(self, screen):
@@ -95,10 +97,11 @@ class StartMenu:
 
 
 class MainGame:
-    def __init__(self, screen, player_name, player):
+    def __init__(self, screen, player_name, player, character_name):
         self.screen = screen
         self.player_name = player_name
         self.player = player
+        self.character_name = character_name
         self.clock = pygame.time.Clock()
         self.map = Map("map/map.tmx")
         self.pokemon_data = PlayerMonsters()
@@ -106,6 +109,13 @@ class MainGame:
         self.debug_show_grass = False
         self.show_heal_popup = False
         self.heal_popup_timer = 0
+        self.start_time = datetime.now()
+        self.yim_battle_count = 0
+        self.total_distance_walked = 0
+        self.total_pokemon_count = len(self.player_monsters)
+        self.heal_count = 0
+        self.start_ticks = pygame.time.get_ticks()  # ⏱️ เก็บเวลาเริ่มเกมเป็นมิลลิวินาที
+
 
         all_monsters = [m for m in self.pokemon_data.monsters if m.name != "pikachu"]
         random.shuffle(all_monsters)
@@ -117,7 +127,28 @@ class MainGame:
             rect_key = (rect.x, rect.y, rect.width, rect.height)
             self.grass_monster_lookup[rect_key] = monster
 
+    def draw_time_and_pokemon_status(self):
+        elapsed_sec = (pygame.time.get_ticks() - self.start_ticks) // 1000
+        minutes = elapsed_sec // 60
+        seconds = elapsed_sec % 60
+        count = len(self.player_monsters)
+
+        status_text = f"Pokemon: {count}/11   Time: {minutes}:{seconds:02d}"
+
+        font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 26)
+        text_surf = font.render(status_text, True, (0, 0, 0))
+        shadow = font.render(status_text, True, (255, 255, 255))
+
+        x = WINDOW_WIDTH - text_surf.get_width() - 20
+        y = 20
+        self.screen.blit(shadow, (x + 2, y + 2))
+        self.screen.blit(text_surf, (x, y))
+
     def start_battle(self, wild_monster):
+        # หยุดเพลง overworld แล้วเปิด battle
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load("sound/battle.ogg")
+        pygame.mixer.music.play(-1)
         if len(self.player_monsters) > 1:
             popup = PokemonSelectionPopup(self.screen, self.player_monsters)
             chosen = popup.run()
@@ -125,6 +156,10 @@ class MainGame:
 
         battle = BattleScene(self.screen, self.player_monsters[0], wild_monster, self.player_monsters)
         result = battle.run()
+
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load("sound/overworld.ogg")
+        pygame.mixer.music.play(-1)
 
         if result == "win":
             wild_monster.hp = wild_monster.max_hp
@@ -165,6 +200,10 @@ class MainGame:
         self.screen.blit(message, message.get_rect(center=bg_rect.center))
 
     def run(self):
+        pygame.mixer.init()
+        pygame.mixer.music.load("sound/overworld.ogg")
+        pygame.mixer.music.play(-1)
+
         running = True
         show_team_popup = False
         team_popup = TeamStatusPopup(self.screen, self.player_monsters, draw_background_fn=self.map.draw)
@@ -176,10 +215,25 @@ class MainGame:
             block_rects = self.map.get_blocking_rects()
 
             if not show_team_popup:
-                self.player.update(keys, block_rects)
+                walked = self.player.update(keys, block_rects)  # รับค่าระยะที่เดิน
+                self.total_distance_walked += walked  # เพิ่มระยะรวม
 
             self.map.draw(self.screen)
             self.player.draw(self.screen)
+
+            self.map.draw(self.screen)
+            self.player.draw(self.screen)
+            self.draw_time_and_pokemon_status()
+
+            # ✅ แสดงชื่อบนหัวตัวละคร
+            name_font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 24)
+            name_text = name_font.render(self.player_name, True, (0, 0, 0))
+            name_shadow = name_font.render(self.player_name, True, (255, 255, 255))
+
+            name_x = self.player.pos.x + self.player.image.get_width() // 2 - name_text.get_width() // 2
+            name_y = self.player.pos.y - 25  # ขยับขึ้น
+            self.screen.blit(name_shadow, (name_x + 2, name_y + 2))
+            self.screen.blit(name_text, (name_x, name_y))
 
             #  HEAL TREE Label
             font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 24)
@@ -204,7 +258,7 @@ class MainGame:
                 self.screen.blit(shadow, (label_pos[0] + 2, label_pos[1] + 2))
                 self.screen.blit(label, label_pos)
 
-            #  DEBUG Grass Zones
+
             if self.debug_show_grass:
                 debug_font = pygame.font.Font(None, 40)
                 for rect_data in self.grass_monster_lookup:
@@ -261,10 +315,12 @@ class MainGame:
                     if obj.name == "healtree":
                         heal_rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
                         if heal_rect.colliderect(self.player.rect):
-                            for p in self.player_monsters:
-                                p.hp = p.max_hp
-                            self.show_heal_popup = True
-                            self.heal_popup_timer = pygame.time.get_ticks()
+                            if any(p.hp < p.max_hp for p in self.player_monsters):  # ✅ เฉพาะตอนเลือดไม่เต็ม
+                                self.heal_count += 1  # ✅ นับเฉพาะรอบที่ heal จริง
+                                for p in self.player_monsters:
+                                    p.hp = p.max_hp
+                                self.show_heal_popup = True
+                                self.heal_popup_timer = pygame.time.get_ticks()
 
                 #  Final Boss Battle (YIM)
                 for obj in self.map.tmx_data.objects:
@@ -282,7 +338,7 @@ class MainGame:
                                 # ✅ ย้ายตัวละครกลับไปจุดเริ่มต้น (เช่นมุมล่างซ้าย)
                                 self.player.pos.x = 20
                                 self.player.pos.y = 220
-                                continue
+                                break
 
                             from yim import YimFinalBattle
                             battle = YimFinalBattle(
@@ -294,7 +350,16 @@ class MainGame:
 
                             from battle import TripleBattleScene
                             triple_battle = TripleBattleScene(self.screen, selected, boss_team)
+
+                            pygame.mixer.music.stop()
+                            pygame.mixer.music.load("sound/battle.ogg")
+                            pygame.mixer.music.play(-1)
+                            self.yim_battle_count += 1
                             result = triple_battle.run()
+
+                            pygame.mixer.music.stop()
+                            pygame.mixer.music.load("sound/overworld.ogg")
+                            pygame.mixer.music.play(-1)
 
                             if result == "win":
                                 self.final_battle_done = True  # ✅ ชนะแล้วไม่ต้องสู้ซ้ำ
@@ -302,6 +367,8 @@ class MainGame:
                             break
 
             self.clock.tick(60)
+
+        save_game_data_to_csv(self)
 
 def main():
     pygame.init()
@@ -314,8 +381,11 @@ def main():
     character_menu = CharacterSelectMenu(screen, player_name)
     player_image_path = character_menu.run()
 
+    # 🟩 Extract character name from path
+    character_name = player_image_path.split("/")[-1].split(".")[0].upper()
+
     player = Player(player_image_path)
-    game = MainGame(screen, player_name, player)
+    game = MainGame(screen, player_name, player, character_name)
     game.run()
 
 

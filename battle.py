@@ -166,6 +166,7 @@ class TripleBattleScene:
         self.sprite_size = (96, 96)
         self.padding_x = 100
         self.y_positions = [100, 250, 400]
+        self.has_attacked_flags = [False for _ in self.player_team]
 
         self.player_positions = [(self.padding_x, y) for y in self.y_positions]
         self.enemy_positions = [(WINDOW_WIDTH - self.padding_x - self.sprite_size[0], y) for y in self.y_positions]
@@ -257,6 +258,8 @@ class TripleBattleScene:
         pygame.time.delay(2000)
 
     def run(self):
+        self.has_attacked_flags = [False] * len(self.player_team)
+
         while True:
             self.draw_scene()
             pygame.display.update()
@@ -269,10 +272,14 @@ class TripleBattleScene:
                 return "win"
 
             now = pygame.time.get_ticks()
-
             if self.state == "player_phase":
+                # ✅ รีเซ็ตแค่เมื่อเข้าสู่ phase นี้เท่านั้น
+                if self.current_player_index == 0 and all(self.has_attacked_flags):
+                    self.has_attacked_flags = [False for _ in self.player_team]
+
                 attacker = self.player_team[self.current_player_index]
-                if attacker.hp <= 0:
+
+                if attacker.hp <= 0 or self.has_attacked_flags[self.current_player_index]:
                     self.current_player_index += 1
                     if self.current_player_index >= len(self.player_team):
                         self.state = "enemy_phase"
@@ -291,24 +298,32 @@ class TripleBattleScene:
                         elif event.key == pygame.K_RIGHT:
                             self.current_target_index = (self.current_target_index + 1) % len(targetable)
                         elif event.key == pygame.K_RETURN:
-                            target = targetable[self.current_target_index % len(targetable)]
-                            self.play_attack_animation(attacker, self.enemy_positions[self.enemy_team.index(target)])
-                            self.attack(attacker, target)
-                            self.current_player_index += 1
-                            if self.current_player_index >= len(self.player_team):
-                                self.state = "enemy_phase"
+                            if not self.has_attacked_flags[self.current_player_index]:
+                                target = targetable[self.current_target_index % len(targetable)]
+                                self.play_attack_animation(attacker,
+                                                           self.enemy_positions[self.enemy_team.index(target)])
+                                self.attack(attacker, target)
+                                self.has_attacked_flags[self.current_player_index] = True
+                                self.current_player_index += 1
+                                if self.current_player_index >= len(self.player_team):
+                                    self.state = "enemy_phase"
 
             elif self.state == "enemy_phase" and now - self.delay_timer > self.delay_interval:
                 for i in range(len(self.enemy_team)):
                     attacker = self.enemy_team[i]
                     if attacker.hp <= 0:
                         continue
-                    if i >= len(self.player_team):
-                        break
-                    defender = self.player_team[i]
-                    if defender.hp <= 0:
-                        continue
-                    self.play_attack_animation(attacker, self.player_positions[i])
+
+                    if i < len(self.player_team) and self.player_team[i].hp > 0:
+                        defender = self.player_team[i]
+                        defender_index = i
+                    else:
+                        alive_defenders = [(j, p) for j, p in enumerate(self.player_team) if p.hp > 0]
+                        if not alive_defenders:
+                            continue
+                        defender_index, defender = alive_defenders[0]
+
+                    self.play_attack_animation(attacker, self.player_positions[defender_index])
                     self.attack(attacker, defender)
                     self.draw_scene()
                     pygame.display.update()
@@ -316,6 +331,7 @@ class TripleBattleScene:
 
                 self.state = "player_phase"
                 self.current_player_index = 0
+                self.has_attacked_flags = [False] * len(self.player_team)  # 🌀 รีเซ็ตเพื่อรอบใหม่
                 self.delay_timer = now
 
             self.clock.tick(60)

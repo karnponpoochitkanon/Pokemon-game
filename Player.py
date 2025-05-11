@@ -31,11 +31,14 @@ class Player:
             self.direction.x = 1
             self.status = 'right'
 
+        walked = 0  # ✅ เพิ่มตัวแปรนับระยะทาง
+
         if self.direction.length() != 0:
             next_pos = self.pos + self.direction
             next_rect = pygame.Rect(next_pos.x + 48, next_pos.y + 48, 32, 32)
 
             if not any(next_rect.colliderect(block) for block in block_rects):
+                walked = self.direction.length()  # ✅ เดินได้เท่าไหร่
                 self.pos = next_pos
                 self.frame_index += self.animation_speed
                 if self.frame_index >= len(self.frames[self.status]):
@@ -45,6 +48,8 @@ class Player:
                 self.image = self.frames[self.status][0]
         else:
             self.image = self.frames[self.status][0]
+
+        return walked  # ✅ คืนค่าระยะทางที่เดินได้
 
     def draw(self, screen):
         screen.blit(self.image, self.pos)
