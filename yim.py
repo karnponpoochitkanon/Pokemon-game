@@ -50,7 +50,6 @@ class YimFinalBattle:
             pygame.draw.rect(self.screen, bg_color, card_rect, border_radius=8)
             pygame.draw.rect(self.screen, border_color, card_rect, 3, border_radius=8)
 
-            # ✅ ลองโหลดจาก boss_yim ก่อน ถ้าไม่เจอค่อย fallback ไป pokemon
             boss_path = f"image/boss_yim/{mon.name}.png"
             normal_path = f"image/pokemon/{mon.name}.png"
             if os.path.exists(boss_path):
@@ -157,7 +156,7 @@ class FinalBossSelectionPopup:
             is_cursor = index == self.cursor_index
             is_fainted = pokemon.hp <= 0
 
-            # 🎨 สีพื้นหลังและกรอบ
+            # สีพื้นหลังและกรอบ
             bg_color = (220, 255, 220) if is_selected else (255, 230, 230) if is_fainted else (255, 255, 255)
             if is_fainted and is_cursor:
                 border_color = (255, 0, 0)
@@ -202,7 +201,7 @@ class FinalBossSelectionPopup:
         self.screen.blit(cancel_msg,
                          (self.modal_rect.centerx - cancel_msg.get_width() // 2, self.modal_rect.bottom - 25))
 
-        # 🔺 ข้อความเตือนถ้าเลือดหมด
+        # ข้อความเตือนถ้าเลือดหมด
         if self.warning_timer and pygame.time.get_ticks() - self.warning_timer < 1500:
             warn = self.font.render("THIS POKEMON HAS NO HP!", True, (255, 0, 0))
             self.screen.blit(warn, warn.get_rect(center=(self.modal_rect.centerx, self.modal_rect.y - 20)))
