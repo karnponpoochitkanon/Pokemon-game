@@ -301,7 +301,7 @@ class MainGame:
 
             #  Trigger events if not showing popup
             if not show_team_popup:
-                # 🌿 Battle in grass
+                #  Battle in grass
                 for rect_data, monster in list(self.grass_monster_lookup.items()):
                     rect = pygame.Rect(rect_data)
                     if rect.colliderect(self.player.rect):
