@@ -1,53 +1,127 @@
-# Pokemon-game
+# 🕹️ Ultimate Pokémon RPG Adventure
 
-ver 0.5
-
----
-
-### 🎮 Game Concept Summary
-
-You are a Pokemon trainer who starts with Pikachu.  
-Explore the world, walk into grass zones to encounter wild Pokemon, and catch them into your team.  
-Your goal is to build a strong team and (in the future) defeat the Final Gym Boss (YIM) in a 3v3 battle!
-
-> 🧪 **Note**: The final boss battle system (YIM) is still under development in this version.
+A full-featured Pokémon-style RPG game built with Python and Pygame, supporting sprite-based map navigation, 1v1 and 3v3 tactical battles, animated skills, sound, dynamic popups, and rich player statistics tracking and visualization.
 
 ---
 
-### 🕹️ Game Features & Controls
+## 🛠️ Installation
 
-| Key          | Function                                                                   |
-|--------------|----------------------------------------------------------------------------|
-| `Arrow Keys` | Move the player                                                            |
-| `Shift`      | Open/close Pokemon team popup (scrollable)                                |
-| `A`          | Toggle grass zone debug view (helps you find areas with no wild Pokemon)  |
-| `SPACE`      | Attack during battle                                                       |
-| `1`          | Switch Pokemon during wild battle (if you have more than one)             |
-| `o`          | Confirm Pokemon selection for boss battle                                 |
+1. **Clone the repository**  
+```bash
+git clone https://github.com/your-username/pokemon-rpg.git
+cd pokemon-rpg
+```
 
----
+2. **Install dependencies**  
+```bash
+pip3 install pygame
+pip3 install pandas
+pip3 install matplotlib
+pip3 install seaborn
+> Note: `os` is a built-in module in Python, so no need to install it separately.
+```
 
-### 🌿 Grass Zone System
-
-- Pokemon are scattered across the grass.
-- When you **win**, the wild Pokemon is **automatically added to your team**.
-
----
-
-### 🏥 Heal Tree
-
-- Walking into the **HEAL TREE** zone fully restores all Pokemon in your team.
-- A green popup will appear to confirm healing.
+3. **Run the game**  
+```bash
+python3 main.py
+```
 
 ---
 
-### 👑 Final Boss Battle (YIM) – *Coming Soon*
+## 🎮 Controls
 
-- When complete, this feature will:
-  1. Allow you to select **3 Pokemon** from your team.
-  2. Keep the **map background** during selection (no black screen).
-  3. Start a **3v3 battle** against the Gym Boss team.
-  4. Animate all attacks with **element-based visuals**.
-  5. Alternate turns between your team and the boss automatically.
+### 🌍 Global
+- `Arrow Keys` → Move / Navigate
+- `Enter` → Confirm / Attack / Select
+- `Esc` → Cancel popup
+- `1` → Run from battle / cancel selection
+- `Shift (L/R)` → View Pokémon team
+
+### ✅ Start Menu
+- `Click` input → Type name (max 10 chars)
+- `Enter` → Confirm name
+
+### 👤 Character Selection
+- `Up / Down` → Navigate characters
+- `Enter` → Select
+
+### 🗺️ On Map
+- `Arrow Keys` → Move
+- `Shift` → View team popup
+- `A` → Show debug grass zones
+
+### ⚔️ Wild Battle (1v1)
+- `Enter` → Attack
+- `1` → Run
+
+### ⚔️ Final Boss Battle (3v3)
+- `Space` → Select/unselect Pokémon (max 3)
+- `Left / Right` → Choose enemy
+- `Enter` → Attack
+- `1` → Cancel and return
 
 ---
+
+## 🔊 Sound
+
+- `overworld.ogg` – background map music  
+- `battle.ogg` – battle music for 1v1 and 3v3
+
+---
+
+## 📊 Data Logging
+
+All data is saved in `game_stats.csv`:
+
+- Player name
+- Time played (seconds)
+- Final boss battles
+- Distance walked
+- Total Pokémon
+- Heal tree usage
+- Character chosen
+
+---
+
+## 📈 Visualization GUI
+
+Run the GUI via:
+
+```bash
+python GUI.py
+```
+
+Includes graphs and summary stats such as:
+
+- Distance histogram
+- Playtime chart
+- Character selection pie chart
+- Pokémon team count
+- Heal usage
+- Final boss battle stats
+- Summary table
+
+---
+
+## 🖼️ Screenshots
+
+- Gameplay: `/screenshots/gameplay/`  
+- Graphs: `/screenshots/visualization/`
+
+---
+
+## 🎥 Demo
+
+[Watch the Game Demo on YouTube](https://youtu.be/0PVEW_bYXD8)
+
+---
+
+## 📄 License
+
+MIT License – free to reuse, fork, and build your own Pokémon world 🐾
+
+---
+Let the journey begin! 🚀
+
+⚔️ In the 3v3 Final Boss Battle, if players press keys too rapidly (especially Enter to attack), the game may crash due to an IndexError.
+This is related to a rare timing issue with the internal turn counter.
