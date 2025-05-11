@@ -1,0 +1,16 @@
+# 🌟 requirements.txt 🌟
+# This file lists the essential libraries required to run the
+# Ultimate Pokemon RPG Adventure — the most polished, animated,
+# stat-tracked, data-visualized Pokemon-style RPG ever built in Python.
+
+# 🎮 Core Game Engine
+pygame>=2.5.2  # Handles 2D graphics, input, sound, animation
+
+# 📊 Data Processing & Visualization
+pandas>=2.0.3      # For collecting and analyzing gameplay stats
+matplotlib>=3.7.2  # For rendering beautiful custom graphs
+seaborn>=0.12.2    # Makes the graphs stylish and readable
+# 'os` is a built-in module in Python, so no need to install it separately.
+
+# 🖼️ GUI Framework (already built-in with Python, but noted here for clarity)
+# tkinter           # Used for the statistics visualization dashboard
