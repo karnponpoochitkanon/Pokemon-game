@@ -6,7 +6,7 @@ def character_importer(cols, rows, *path):
     sheet = pygame.image.load(full_path).convert_alpha()
     frame_dict = {}
 
-    # ปรับเป็นขนาด 128x128
+    # ขนาด 128x128
     frame_width = 128
     frame_height = 128
 

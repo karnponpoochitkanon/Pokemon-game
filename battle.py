@@ -213,28 +213,27 @@ class TripleBattleScene:
     def draw_scene(self):
         self.screen.blit(self.bg, (0, 0))
 
-        # 🔺 แสดงคำว่า BATTLE ด้านบน
+        # แสดงคำว่า BATTLE ด้านบน
         title_font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 60)
         battle_title = title_font.render("BATTLE", True, (200, 0, 0))
         self.screen.blit(battle_title, (WINDOW_WIDTH // 2 - battle_title.get_width() // 2, 20))
 
-        # 🔺 วาดทีมผู้เล่น
+        # วาดทีมผู้เล่น
         for i, mon in enumerate(self.player_team):
             self.screen.blit(self.player_sprites[i], self.player_positions[i])
             self.draw_health_bar(self.player_positions[i][0], self.player_positions[i][1] - 30, mon)
 
-        # 🔺 วาดทีมบอส YIM
+        # วาดทีมบอส YIM
         for i, mon in enumerate(self.enemy_team):
             self.screen.blit(self.enemy_sprites[i], self.enemy_positions[i])
             self.draw_health_bar(self.enemy_positions[i][0], self.enemy_positions[i][1] - 30, mon)
 
-        # 🔺 UI ข้างล่างแบบใช้ฟอนต์ที่รองรับ Unicode ลูกศร
+        # UI ข้างล่างแบบใช้ฟอนต์ที่รองรับ Unicode ลูกศร
         ui_font = pygame.font.SysFont(None, 26)
-        # แทน ← / → ด้วยข้อความแทน
         tip = ui_font.render("LEFT / RIGHT : TARGET   |   ENTER : ATTACK", True, (0, 0, 0))
         self.screen.blit(tip, (WINDOW_WIDTH // 2 - tip.get_width() // 2, WINDOW_HEIGHT - 40))
 
-        # 🔺 กรอบแดงรอบศัตรูที่ถูกเลือก
+        # กรอบแดงรอบศัตรูที่ถูกเลือก
         if self.state == "player_phase":
             targetable = [e for e in self.enemy_team if e.hp > 0]
             if targetable:
@@ -273,7 +272,7 @@ class TripleBattleScene:
 
             now = pygame.time.get_ticks()
             if self.state == "player_phase":
-                # ✅ รีเซ็ตแค่เมื่อเข้าสู่ phase นี้เท่านั้น
+                # รีเซ็ตแค่เมื่อเข้าสู่ phase นี้เท่านั้น
                 if self.current_player_index == 0 and all(self.has_attacked_flags):
                     self.has_attacked_flags = [False for _ in self.player_team]
 
@@ -331,7 +330,7 @@ class TripleBattleScene:
 
                 self.state = "player_phase"
                 self.current_player_index = 0
-                self.has_attacked_flags = [False] * len(self.player_team)  # 🌀 รีเซ็ตเพื่อรอบใหม่
+                self.has_attacked_flags = [False] * len(self.player_team)  # รีเซ็ตเพื่อรอบใหม่
                 self.delay_timer = now
 
             self.clock.tick(60)

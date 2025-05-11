@@ -5,12 +5,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
-# โหลดข้อมูล
-df = pd.read_csv("game_stats.csv")
+df = pd.read_csv("game_stats.csv", on_bad_lines='skip')
 df.columns = df.columns.str.strip()
 sns.set(style="darkgrid")
 
-# กำหนดกราฟทั้งหมด
 features = {
     "Distance Histogram": lambda ax: sns.histplot(df["Distance"], kde=True, bins=15, color="#69b3a2", edgecolor="black", ax=ax),
     "Play Time Line Chart": lambda ax: sns.lineplot(x=range(len(df)), y=df["Time(s)"], ax=ax),
@@ -22,31 +20,27 @@ features = {
                                               y=df["Heal Tree Uses"].value_counts().sort_index().values, palette="Greens", ax=ax),
     "YIM Battle Histogram": lambda ax: sns.histplot(df["YIM Battles"], bins=range(1, df["YIM Battles"].max()+2),
                                                     color="salmon", edgecolor="black", ax=ax),
-    "Scatter: Pokemon vs Time": lambda ax: sns.scatterplot(x=df["Total Pokemon"], y=df["Time(s)"], ax=ax, s=60, color="skyblue", edgecolor="black"),
-    "Scatter: Pokemon vs Distance": lambda ax: sns.scatterplot(x=df["Total Pokemon"], y=df["Distance"], ax=ax, s=60, color="tan", edgecolor="black"),
-    "Summary Table": "summary"
+    "Total Pokemon vs Time": lambda ax: sns.scatterplot(data=df, x="Total Pokemon", y="Time(s)", ax=ax, color="skyblue", edgecolor="black"),
+    "Total Pokemon vs Distance": lambda ax: sns.scatterplot(data=df, x="Total Pokemon", y="Distance", ax=ax, color="goldenrod", edgecolor="black"),
 }
 
-# คำอธิบายกราฟแต่ละตัว
 graph_descriptions = {
     "Distance Histogram": "This histogram shows how far players walked during the game. Most walked between 3000–5500 units.",
     "Play Time Line Chart": "This line chart displays the total time (in seconds) each player spent in the game.",
     "Character Pie Chart": "This pie chart shows the percentage of players who selected each character.",
-    "Pokemon Count Bar": "This bar chart shows how many Pokémon each player had. Most players had around 5 to 10 Pokémon.",
+    "Pokemon Count Bar": "This bar chart shows how many Pokémon each player had. Most players had around 5 to 10 Pokemon.",
     "Heal Tree Usage": "This bar chart shows how many times players used the healing tree. The majority used it 1 or 2 times.",
     "YIM Battle Histogram": "This histogram shows the number of YIM boss battles each player engaged in.",
-    "Scatter: Pokemon vs Time": "This scatter plot shows the relationship between number of Pokémon and play time.",
-    "Scatter: Pokemon vs Distance": "This scatter plot shows the relationship between number of Pokémon and distance walked.",
+    "Total Pokemon vs Time": "This scatter plot compares the number of Pokémon with total playtime. Patterns may reveal time investment vs reward.",
+    "Total Pokemon vs Distance": "This scatter plot compares how far players walked with how many Pokemon they collected.",
 }
 
-# คำนวณ summary table
 def get_summary_df():
     cols = ["Time(s)", "YIM Battles", "Distance", "Total Pokemon", "Heal Tree Uses"]
     summary = df[cols].describe().T
     summary["mode"] = df[cols].mode().iloc[0]
     return summary.reset_index().rename(columns={"index": "Feature"})
 
-# สร้าง GUI
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -118,5 +112,4 @@ class App(tk.Tk):
         self.main_frame.pack_forget()
         self.graph_frame.pack_forget()
 
-# รัน GUI
 App().mainloop()

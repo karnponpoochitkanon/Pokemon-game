@@ -26,7 +26,6 @@ class Map:
                     if tile:
                         screen.blit(tile, (x * TILE_SIZE, y * TILE_SIZE))
 
-        # วาด object ที่มี gid เช่น hospital, door, healtree, yim
         for obj in self.tmx_data.objects:
             if hasattr(obj, 'gid'):
                 tile = self.tmx_data.get_tile_image_by_gid(obj.gid)

@@ -114,7 +114,7 @@ class MainGame:
         self.total_distance_walked = 0
         self.total_pokemon_count = len(self.player_monsters)
         self.heal_count = 0
-        self.start_ticks = pygame.time.get_ticks()  # ⏱️ เก็บเวลาเริ่มเกมเป็นมิลลิวินาที
+        self.start_ticks = pygame.time.get_ticks()  # เก็บเวลาเริ่มเกมเป็นมิลลิวินาที
 
 
         all_monsters = [m for m in self.pokemon_data.monsters if m.name != "pikachu"]
@@ -145,7 +145,6 @@ class MainGame:
         self.screen.blit(text_surf, (x, y))
 
     def start_battle(self, wild_monster):
-        # หยุดเพลง overworld แล้วเปิด battle
         pygame.mixer.music.stop()
         pygame.mixer.music.load("sound/battle.ogg")
         pygame.mixer.music.play(-1)
@@ -165,13 +164,12 @@ class MainGame:
             wild_monster.hp = wild_monster.max_hp
             self.player_monsters.append(wild_monster)
 
-            # ลบจาก grass_lookup
             for rect_data, mon in list(self.grass_monster_lookup.items()):
                 if mon == wild_monster:
                     del self.grass_monster_lookup[rect_data]
                     break
 
-            #  แสดง popup หลังจากกลับมาหน้า map
+
             self.map.draw(self.screen)
             self.player.draw(self.screen)
             pygame.display.flip()
@@ -225,7 +223,7 @@ class MainGame:
             self.player.draw(self.screen)
             self.draw_time_and_pokemon_status()
 
-            # ✅ แสดงชื่อบนหัวตัวละคร
+            # แสดงชื่อบนหัวตัวละคร
             name_font = pygame.font.Font("Fonts/Arabica/ttf/Arabica.ttf", 24)
             name_text = name_font.render(self.player_name, True, (0, 0, 0))
             name_shadow = name_font.render(self.player_name, True, (255, 255, 255))
@@ -315,8 +313,8 @@ class MainGame:
                     if obj.name == "healtree":
                         heal_rect = pygame.Rect(obj.x, obj.y, obj.width, obj.height)
                         if heal_rect.colliderect(self.player.rect):
-                            if any(p.hp < p.max_hp for p in self.player_monsters):  # ✅ เฉพาะตอนเลือดไม่เต็ม
-                                self.heal_count += 1  # ✅ นับเฉพาะรอบที่ heal จริง
+                            if any(p.hp < p.max_hp for p in self.player_monsters):  # เฉพาะตอนเลือดไม่เต็ม
+                                self.heal_count += 1  # นับเฉพาะรอบที่ heal จริง
                                 for p in self.player_monsters:
                                     p.hp = p.max_hp
                                 self.show_heal_popup = True
@@ -335,7 +333,7 @@ class MainGame:
                             )
                             selected = popup.run()
                             if not selected:
-                                # ✅ ย้ายตัวละครกลับไปจุดเริ่มต้น (เช่นมุมล่างซ้าย)
+                                # ย้ายตัวละครกลับไปจุดเริ่มต้น (เช่นมุมล่างซ้าย)
                                 self.player.pos.x = 20
                                 self.player.pos.y = 220
                                 break
@@ -362,7 +360,7 @@ class MainGame:
                             pygame.mixer.music.play(-1)
 
                             if result == "win":
-                                self.final_battle_done = True  # ✅ ชนะแล้วไม่ต้องสู้ซ้ำ
+                                self.final_battle_done = True  # ชนะแล้วไม่ต้องสู้ซ้ำ
                             # ถ้าแพ้ไม่ทำอะไร → กลับไป heal ได้
                             break
 
@@ -381,7 +379,7 @@ def main():
     character_menu = CharacterSelectMenu(screen, player_name)
     player_image_path = character_menu.run()
 
-    # 🟩 Extract character name from path
+    # Extract character name from path
     character_name = player_image_path.split("/")[-1].split(".")[0].upper()
 
     player = Player(player_image_path)
