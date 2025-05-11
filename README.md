@@ -15,6 +15,7 @@ cd Pokemon-game
 2. **Install dependencies**  
 ```bash
 pip3 install pygame
+pip3 install pytmx
 pip3 install pandas
 pip3 install matplotlib
 pip3 install seaborn
